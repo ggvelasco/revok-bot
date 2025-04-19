@@ -1,28 +1,54 @@
 // index.js
-require('dotenv').config();
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
+const { Client, GatewayIntentBits, Collection } = require("discord.js");
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
-client.once('ready', () => {
-  console.log(`✅ Logado como ${client.user.tag}`);
-});
+//------------------- collection para comandos -------------------
+client.commands = new Collection();
 
-client.on('messageCreate', message => {
-  if (!message.guild || message.author.bot) return;
-  const prefix = '!';
-  if (!message.content.startsWith(prefix)) return;
+// ------------------- lê todos os arquivos de ./commands -------------------
+const commandsPath = path.join(__dirname, "commands");
+const commandFiles = fs
+  .readdirSync(commandsPath)
+  .filter((f) => f.endsWith(".js"));
 
-  const [cmd] = message.content.slice(prefix.length).trim().split(/\s+/);
-  if (cmd === 'ping') {
-    message.reply(`Pong! Latência: ${Date.now() - message.createdTimestamp}ms`);
+for (const file of commandFiles) {
+  const filePath = path.join(commandsPath, file);
+  const command = require(filePath);
+  // cada comando precisa ter: name e execute()
+  if ("name" in command && "execute" in command) {
+    client.commands.set(command.name, command);
+  } else {
+    console.warn(`[WARNING] O comando em ${file} está mal formatado.`);
   }
-});
+}
+
+// ---------------------------------------------------------------
+
+//------------------- lê todos os arquivos de ./events -------------------
+
+const eventsPath = path.join(__dirname, "events");
+const eventFiles = fs.readdirSync(eventsPath).filter((f) => f.endsWith(".js"));
+
+for (const file of eventFiles) {
+  const { name, once, execute } = require(path.join(eventsPath, file));
+  if (once) {
+    client.once(name, (...args) => execute(client, ...args));
+  } else {
+    client.on(name, (...args) => execute(...args));
+  }
+}
+
+// ---------------------------------------------------------------
+
 
 client.login(process.env.DISCORD_TOKEN);
