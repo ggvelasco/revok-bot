@@ -1,15 +1,14 @@
-// events/interactionCreate.js
 module.exports = {
     name: 'interactionCreate',
-    once: false,
     async execute(interaction) {
       if (!interaction.isChatInputCommand()) return;
-      const command = interaction.client.commands.get(interaction.commandName);
+  
+      const command = interaction.client.slashCommands.get(interaction.commandName);
       if (!command) return;
+  
       try {
         await command.execute(interaction);
-      } catch (err) {
-        console.error(err);
+      } catch {
         await interaction.reply({ content: 'Erro interno.', ephemeral: true });
       }
     }

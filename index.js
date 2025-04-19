@@ -13,23 +13,25 @@ const client = new Client({
 });
 
 //------------------- collection para comandos -------------------
-client.commands = new Collection();
+client.prefixCommands = new Collection();
+client.slashCommands  = new Collection();
 
-// ------------------- lê todos os arquivos de ./commands -------------------
-const commandsPath = path.join(__dirname, "commands");
-const commandFiles = fs
-  .readdirSync(commandsPath)
-  .filter((f) => f.endsWith(".js"));
+// ------------------- lê todos os arquivos de ./commands/prefix -------------------
 
-for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
-  const command = require(filePath);
-  // cada comando precisa ter: name e execute()
-  if ("name" in command && "execute" in command) {
-    client.commands.set(command.name, command);
-  } else {
-    console.warn(`[WARNING] O comando em ${file} está mal formatado.`);
-  }
+const prefixPath = path.join(__dirname, 'commands', 'prefix');
+for (const file of fs.readdirSync(prefixPath).filter(f => f.endsWith('.js'))) {
+  const cmd = require(path.join(prefixPath, file));
+  // espera: { name, execute(message,args) }
+  client.prefixCommands.set(cmd.name, cmd);
+}
+
+// ------------------- lê todos os arquivos de ./commands/slash -------------------
+
+const slashPath = path.join(__dirname, 'commands', 'slash');
+for (const file of fs.readdirSync(slashPath).filter(f => f.endsWith('.js'))) {
+  const cmd = require(path.join(slashPath, file));
+  // espera: { data: SlashCommandBuilder, execute(interaction) }
+  client.slashCommands.set(cmd.data.name, cmd);
 }
 
 // ---------------------------------------------------------------
