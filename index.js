@@ -1,17 +1,23 @@
 // index.js
+
+
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
+const { Client, GatewayIntentBits, Partials, Collection } = require("discord.js");
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions, 
+    GatewayIntentBits.GuildMessageReactions,
   ],
-  partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+  partials: [
+    Partials.Message,
+    Partials.Channel,
+    Partials.Reaction
+  ],
 });
 
 //------------------- collection para comandos -------------------
@@ -53,6 +59,7 @@ for (const file of eventFiles) {
 }
 
 // ---------------------------------------------------------------
+console.log('Eventos carregados:', client.eventNames());
 
 
 client.login(process.env.DISCORD_TOKEN);
