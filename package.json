@@ -18,6 +18,10 @@
     "ytdl-core": "^4.11.5",
     "ytsr": "^3.8.4"
   },
+  "nodemonConfig": {
+    "ignore": ["tickets.json","reactionRoles.json"]
+  },
+
   "devDependencies": {
     "nodemon": "^3.1.9"
   }
