@@ -1,63 +1,113 @@
 // commands/slash/reactionrole.js
 const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 const { addRole, removeRole, listRoles } = require('../../services/reactionRoleService');
+const { t } = require('../../utils/i18n');
+const pt = require('../../locales/pt.json');
+const en = require('../../locales/en.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('reaction-role')
-    .setDescription('Gerencia Reaction‑Roles')
+    .setDescription(en.rr.DESCRIPTION)
+    .setDescriptionLocalizations({
+      'pt-BR': pt.rr.DESCRIPTION,
+      'en-US': en.rr.DESCRIPTION
+    })
+
+    // add
     .addSubcommand(sub =>
       sub
         .setName('add')
-        .setDescription('Adiciona um cargo por reação')
+        .setDescription(en.rr.ADD_SUB)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.rr.ADD_SUB,
+          'en-US': en.rr.ADD_SUB
+        })
         .addStringOption(opt =>
           opt
             .setName('message')
-            .setDescription('ID da mensagem')
+            .setDescription(en.rr.MSG_OPTION)
+            .setDescriptionLocalizations({
+              'pt-BR': pt.rr.MSG_OPTION,
+              'en-US': en.rr.MSG_OPTION
+            })
             .setRequired(true)
         )
         .addStringOption(opt =>
           opt
             .setName('emoji')
-            .setDescription('Emoji (unicode ou custom)')
+            .setDescription(en.rr.EMOJI_OPTION)
+            .setDescriptionLocalizations({
+              'pt-BR': pt.rr.EMOJI_OPTION,
+              'en-US': en.rr.EMOJI_OPTION
+            })
             .setRequired(true)
         )
         .addRoleOption(opt =>
           opt
             .setName('role')
-            .setDescription('Cargo a ser atribuído')
+            .setDescription(en.rr.ROLE_OPTION)
+            .setDescriptionLocalizations({
+              'pt-BR': pt.rr.ROLE_OPTION,
+              'en-US': en.rr.ROLE_OPTION
+            })
             .setRequired(true)
         )
     )
+
+    // remove
     .addSubcommand(sub =>
       sub
         .setName('remove')
-        .setDescription('Remove uma Reaction‑Role')
+        .setDescription(en.rr.REMOVE_SUB)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.rr.REMOVE_SUB,
+          'en-US': en.rr.REMOVE_SUB
+        })
         .addStringOption(opt =>
           opt
             .setName('message')
-            .setDescription('ID da mensagem')
+            .setDescription(en.rr.MSG_OPTION)
+            .setDescriptionLocalizations({
+              'pt-BR': pt.rr.MSG_OPTION,
+              'en-US': en.rr.MSG_OPTION
+            })
             .setRequired(true)
         )
         .addStringOption(opt =>
           opt
             .setName('emoji')
-            .setDescription('Emoji')
+            .setDescription(en.rr.EMOJI_OPTION)
+            .setDescriptionLocalizations({
+              'pt-BR': pt.rr.EMOJI_OPTION,
+              'en-US': en.rr.EMOJI_OPTION
+            })
             .setRequired(true)
         )
     )
+
+    // list
     .addSubcommand(sub =>
       sub
         .setName('list')
-        .setDescription('Lista todas as Reaction‑Roles do servidor')
+        .setDescription(en.rr.LIST_SUB)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.rr.LIST_SUB,
+          'en-US': en.rr.LIST_SUB
+        })
     ),
 
   async execute(interaction) {
+    const flags = 1 << 6;
+    const guildId = interaction.guild.id;
+
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
-      return interaction.reply({ content: 'Você precisa de Manage Roles.', flags: 1 << 6 });
+      return interaction.reply({
+        content: t(guildId, 'rr.NO_MANAGE_ROLES'),
+        flags
+      });
     }
 
-    const guildId = interaction.guild.id;
     const sub = interaction.options.getSubcommand();
 
     if (sub === 'add') {
@@ -65,18 +115,18 @@ module.exports = {
       const emoji     = interaction.options.getString('emoji');
       const role      = interaction.options.getRole('role');
 
-      // 1) registra no store
       await addRole(guildId, messageId, emoji, role.id);
 
-      // 2) responde imediatamente para não expirar
-      await interaction.reply({ content: '✅ Reaction‑Role configurada!', flags: 1 << 6 });
+      await interaction.reply({
+        content: t(guildId, 'rr.ADD_SUCCESS'),
+        flags
+      });
 
-      // 3) faz fetch e adiciona a reação
       try {
         const msg = await interaction.channel.messages.fetch(messageId);
         await msg.react(emoji);
       } catch (err) {
-        console.error('Não consegui adicionar a reação:', err);
+        console.error('❌ ' + t(guildId, 'rr.ERROR_REACT'), err);
       }
 
     } else if (sub === 'remove') {
@@ -84,19 +134,34 @@ module.exports = {
       const emoji     = interaction.options.getString('emoji');
 
       await removeRole(guildId, messageId, emoji);
-      await interaction.reply({ content: '🗑️ Reaction‑Role removida.', flags: 1 << 6 });
+
+      await interaction.reply({
+        content: t(guildId, 'rr.REMOVE_SUCCESS'),
+        flags
+      });
 
     } else if (sub === 'list') {
       const mapping = await listRoles(guildId);
       if (!Object.keys(mapping).length) {
-        return interaction.reply({ content: 'Nenhuma Reaction‑Role configurada.', flags: 1 << 6 });
+        return interaction.reply({
+          content: t(guildId, 'rr.LIST_EMPTY'),
+          flags
+        });
       }
 
-      const lines = Object.entries(mapping).map(([key, roleId]) => {
-        const [msgId, em] = key.split('-');
-        return `• Msg: ${msgId} – Emoji: ${em} → <@&${roleId}>`;
+      const msgLabel   = t(guildId, 'rr.LIST_MSG_LABEL');
+      const emojiLabel = t(guildId, 'rr.LIST_EMOJI_LABEL');
+      const lines = Object.entries(mapping).map(
+        ([key, roleId]) => {
+          const [msgId, em] = key.split('-');
+          return `• ${msgLabel} ${msgId} – ${emojiLabel} ${em} → <@&${roleId}>`;
+        }
+      );
+
+      await interaction.reply({
+        content: lines.join('\n'),
+        flags
       });
-      await interaction.reply({ content: lines.join('\n'), flags: 1 << 6 });
     }
   }
 };

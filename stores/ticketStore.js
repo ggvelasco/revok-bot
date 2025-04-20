@@ -1,61 +1,38 @@
-// stores/reactionRoleStore.js
-const fs = require('fs');
+// stores/ticketStore.js
+const fs   = require('fs');
 const path = require('path');
-const file = path.join(__dirname, '..', 'reactionRoles.json');
+const file = path.join(__dirname, '..', 'tickets.json');
 
 /**
- * Carrega todo o banco.
- * @returns {Object} mapeamento inteiro do JSON.
+ * Carrega o JSON de tickets (ou inicializa um se não existir)
+ * @returns {{ nextId: number, data: Record<string, any> }}
  */
 function _load() {
-  if (!fs.existsSync(file)) return {};
+  if (!fs.existsSync(file)) return { nextId: 1, data: {} };
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
 /**
- * Salva todo o banco.
- * @param {Object} data
+ * Persiste o JSON de tickets
+ * @param {{ nextId: number, data: Record<string, any> }} store
  */
-function _save(data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+function _save(store) {
+  fs.writeFileSync(file, JSON.stringify(store, null, 2));
 }
 
 /**
- * Retorna o objeto de reaction‑roles para a guild.
- * @param {string} guildId
- * @returns {Object.<string,string>}  
+ * Retorna o objeto inteiro de tickets
  */
-async function getAll(guildId) {
-  const db = _load();
-  return db[guildId] || {};
+async function getStore() {
+  return _load();
 }
 
 /**
- * Adiciona ou atualiza uma reaction‑role.
- * @param {string} guildId
- * @param {string} messageId
- * @param {string} emoji
- * @param {string} roleId
+ * Salva o objeto de tickets
+ * @param {{ nextId: number, data: Record<string, any> }} store
  */
-async function add(guildId, messageId, emoji, roleId) {
-  const db = _load();
-  db[guildId] = db[guildId] || {};
-  db[guildId][`${messageId}-${emoji}`] = roleId;
-  _save(db);
+async function saveStore(store) {
+  _save(store);
 }
 
-/**
- * Remove uma reaction‑role.
- * @param {string} guildId
- * @param {string} messageId
- * @param {string} emoji
- */
-async function remove(guildId, messageId, emoji) {
-  const db = _load();
-  if (db[guildId]) {
-    delete db[guildId][`${messageId}-${emoji}`];
-    _save(db);
-  }
-}
-
-module.exports = { getAll, add, remove };
+module.exports = { getStore, saveStore };

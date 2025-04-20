@@ -1,38 +1,72 @@
 // commands/slash/announce.js
+const { t } = require('../../utils/i18n');
+const pt = require('../../locales/pt.json');
+const en = require('../../locales/en.json');
 const {
-    SlashCommandBuilder,
-    PermissionsBitField,
-    EmbedBuilder,
-    ChannelType     // ← IMPORTAÇÃO ADICIONADA
-  } = require('discord.js');
-  
-  module.exports = {
-    data: new SlashCommandBuilder()
-      .setName('announce')
-      .setDescription('Faz o bot postar uma mensagem no canal escolhido')
-      .addChannelOption(opt =>
-        opt
-          .setName('channel')
-          .setDescription('Canal onde publicar')
-          .addChannelTypes(ChannelType.GuildText)  // só texto
-          .setRequired(true)
-      )
-      .addStringOption(opt =>
-        opt
-          .setName('message')
-          .setDescription('O conteúdo da mensagem')
-          .setRequired(true)
-      ),
-    async execute(interaction) {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-        return interaction.reply({ content: '🔒 Só administradores podem usar isso.', flags: 1 << 6 });
-      }
-  
-      const channel = interaction.options.getChannel('channel');
-      const text    = interaction.options.getString('message');
-  
-      await channel.send(text);    
-      await interaction.reply({ content: `✅ Mensagem enviada em ${channel}`, flags: 1 << 6 });
+  SlashCommandBuilder,
+  PermissionsBitField,
+  ChannelType
+} = require('discord.js');
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('announce')
+    // fallback global (en)
+    .setDescription(en.announce.DESCRIPTION)
+    // traduções para o Discord client
+    .setDescriptionLocalizations({
+      'pt-BR': pt.announce.DESCRIPTION,
+      'en-US': en.announce.DESCRIPTION
+    })
+
+    .addChannelOption(opt =>
+      opt
+        .setName('channel')
+        // fallback
+        .setDescription(en.announce.CHANNEL_DESCRIPTION)
+        // localizações
+        .setDescriptionLocalizations({
+          'pt-BR': pt.announce.CHANNEL_DESCRIPTION,
+          'en-US': en.announce.CHANNEL_DESCRIPTION
+        })
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(true)
+    )
+
+    .addStringOption(opt =>
+      opt
+        .setName('message')
+        // fallback
+        .setDescription(en.announce.MESSAGE_DESCRIPTION)
+        // localizações
+        .setDescriptionLocalizations({
+          'pt-BR': pt.announce.MESSAGE_DESCRIPTION,
+          'en-US': en.announce.MESSAGE_DESCRIPTION
+        })
+        .setRequired(true)
+    ),
+
+  async execute(interaction) {
+    const flags = 1 << 6;
+
+    // permissão
+    if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+      return interaction.reply({
+        content: t(interaction.guild.id, 'general.NO_PERMISSION'),
+        flags
+      });
     }
-  };
-  
+
+    const channel = interaction.options.getChannel('channel');
+    const text    = interaction.options.getString('message');
+
+    // envia texto puro
+    await channel.send(text);
+
+    // resposta efêmera com t() e a chave certa: 'announce.SENT'
+    return interaction.reply({
+      content: t(interaction.guild.id, 'announce.SENT', { channel: channel.toString() }),
+      flags: 1 << 6
+    });
+  }
+};

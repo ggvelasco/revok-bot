@@ -5,118 +5,149 @@ const {
   EmbedBuilder,
   ChannelType
 } = require('discord.js');
+const { t } = require('../../utils/i18n');
+const { doOrSimulate } = require('../../utils/action');
+const pt = require('../../locales/pt.json');
+const en = require('../../locales/en.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('mute')
-    .setDescription('Aplica ou remove timeout nativo (mute) de um usuário')
+    // descrição global (fallback EN)
+    .setDescription(en.mod.mute.DESCRIPTION)
+    // localizações p/ client
+    .setDescriptionLocalizations({
+      'pt-BR': pt.mod.mute.DESCRIPTION,
+      'en-US': en.mod.mute.DESCRIPTION
+    })
+
     .addUserOption(opt =>
       opt
         .setName('user')
-        .setDescription('Usuário a ser mutado/desmutado')
+        .setDescription(en.mod.mute.USER_OPTION)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.mod.mute.USER_OPTION,
+          'en-US': en.mod.mute.USER_OPTION
+        })
         .setRequired(true)
     )
     .addIntegerOption(opt =>
       opt
         .setName('duration')
-        .setDescription('Duração do mute (número)')
-        .setRequired(false)
+        .setDescription(en.mod.mute.DURATION_OPTION)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.mod.mute.DURATION_OPTION,
+          'en-US': en.mod.mute.DURATION_OPTION
+        })
     )
     .addStringOption(opt =>
       opt
         .setName('unit')
-        .setDescription('Unidade de tempo')
+        .setDescription(en.mod.mute.UNIT_OPTION)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.mod.mute.UNIT_OPTION,
+          'en-US': en.mod.mute.UNIT_OPTION
+        })
         .addChoices(
-          { name: 'Minutos', value: 'minutes' },
-          { name: 'Horas',   value: 'hours'   },
-          { name: 'Dias',    value: 'days'    }
+          { name: pt.mod.mute.UNIT_MINUTE,  value: 'minutes' },
+          { name: pt.mod.mute.UNIT_HOUR,    value: 'hours'   },
+          { name: pt.mod.mute.UNIT_DAY,     value: 'days'    }
         )
-        .setRequired(false)
     )
     .addStringOption(opt =>
       opt
         .setName('reason')
-        .setDescription('Motivo do mute')
-        .setRequired(false)
+        .setDescription(en.mod.mute.REASON_OPTION)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.mod.mute.REASON_OPTION,
+          'en-US': en.mod.mute.REASON_OPTION
+        })
     ),
 
   async execute(interaction) {
+    const guildId = interaction.guild.id;
+    const flags   = 1 << 6;
+
+    // permission check
+    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+      return interaction.reply({ content: t(guildId, 'mod.mute.NO_PERM'), flags });
+    }
+
     const member   = interaction.options.getMember('user');
     const duration = interaction.options.getInteger('duration');
     const unit     = interaction.options.getString('unit');
-    const reason   = interaction.options.getString('reason') || 'Sem motivo especificado';
-    const flags    = 1 << 6;
+    const reason   = interaction.options.getString('reason') 
+                     || t(guildId, 'mod.mute.REASON_UNSPECIFIED');
 
-    // Permissão
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      return interaction.reply({ content: '🔒 Você não tem permissão para mutar membros.', flags });
-    }
+    // toggle unmute
+    const isTimedOut = 
+      member.communicationDisabledUntilTimestamp &&
+      member.communicationDisabledUntilTimestamp > Date.now();
 
-    // Detecta se já está em timeout
-    const isTimedOut = member.communicationDisabledUntilTimestamp && member.communicationDisabledUntilTimestamp > Date.now();
-
-    // Se não passou duração, faz toggle de unmute
     if (!duration) {
       if (!isTimedOut) {
-        return interaction.reply({ content: '❌ Especifique uma duração para mutar, ou use `/mute user duration:0` para desmutar.', flags });
+        return interaction.reply({ content: t(guildId, 'mod.mute.UNSPECIFY_DURATION'), flags });
       }
-      // desmute
-      await member.timeout(null, reason);
-      await interaction.reply({ content: `🔊 ${member.user.tag} foi desmutado.`, flags });
+      await doOrSimulate(
+        `unmute ${member.user.tag}`,
+        () => member.timeout(null, reason)
+      );
+      await interaction.reply({ content: t(guildId, 'mod.mute.UNMUTED', { user: member.user.tag }), flags });
 
-      // log
-      const logChannel = interaction.guild.channels.cache.find(ch =>
+      const logCh = interaction.guild.channels.cache.find(ch =>
         ch.name === 'mod-logs' && ch.type === ChannelType.GuildText
       );
-      if (logChannel) {
+      if (logCh) {
         const embed = new EmbedBuilder()
-          .setTitle('🔊 Desmute')
+          .setTitle(t(guildId, 'mod.mute.EMBED_TITLE_UNMUTE'))
           .setColor(0x00FF00)
           .addFields(
-            { name: 'Usuário',   value: member.user.tag,        inline: true },
-            { name: 'Moderador', value: interaction.user.tag,     inline: true },
-            { name: 'Motivo',    value: reason,                   inline: false }
+            { name: t(guildId, 'mod.mute.FIELD_USER'),      value: member.user.tag, inline: true },
+            { name: t(guildId, 'mod.mute.FIELD_MODERATOR'), value: interaction.user.tag, inline: true },
+            { name: t(guildId, 'mod.mute.FIELD_REASON'),    value: reason, inline: false }
           )
           .setTimestamp();
-        await logChannel.send({ embeds: [embed] });
+        await logCh.send({ embeds: [embed] });
       }
       return;
     }
 
-    // Mute com duração
+    // calculate ms
     const multipliers = { minutes: 60_000, hours: 3_600_000, days: 86_400_000 };
     const ms = multipliers[unit] * duration;
 
-    await member.timeout(ms, reason);
+    await doOrSimulate(
+      `mute ${member.user.tag} for ${duration} ${unit}`,
+      () => member.timeout(ms, reason)
+    );
 
-    // texto de saída com singular/plural
-    const unitMap = {
-      minutes: { singular: 'minuto', plural: 'minutos' },
-      hours:   { singular: 'hora',   plural: 'horas'   },
-      days:    { singular: 'dia',    plural: 'dias'    }
-    };
+    // choose unit label
     const label = duration === 1
-      ? unitMap[unit].singular
-      : unitMap[unit].plural;
+      ? pt.mod.mute[`UNIT_${unit.toUpperCase().slice(0,-1)}`]  // UNIT_MINUTE, UNIT_HOUR, UNIT_DAY
+      : pt.mod.mute[`UNIT_${unit.toUpperCase()}S`];             // UNIT_MINUTES, etc.
+    // for EN, your t() will fetch appropriate; we pass label as var
+    const userLabel = member.user.tag;
 
-    await interaction.reply({ content: `🔇 ${member.user.tag} foi mutado por ${duration} ${label}.`, flags });
+    await interaction.reply({
+      content: t(guildId, 'mod.mute.SUCCESS', { user: userLabel, duration, unitLabel: label }),
+      flags
+    });
 
-    // log
-    const logChannel = interaction.guild.channels.cache.find(ch =>
+    const logCh = interaction.guild.channels.cache.find(ch =>
       ch.name === 'mod-logs' && ch.type === ChannelType.GuildText
     );
-    if (logChannel) {
+    if (logCh) {
       const embed = new EmbedBuilder()
-        .setTitle('🔇 Mute')
+        .setTitle(t(guildId, 'mod.mute.EMBED_TITLE_MUTE'))
         .setColor(0x808080)
         .addFields(
-          { name: 'Usuário',   value: member.user.tag,        inline: true },
-          { name: 'Moderador', value: interaction.user.tag,     inline: true },
-          { name: 'Duração',   value: `${duration} ${label}`,   inline: true },
-          { name: 'Motivo',    value: reason,                   inline: false }
+          { name: t(guildId, 'mod.mute.FIELD_USER'),      value: userLabel, inline: true },
+          { name: t(guildId, 'mod.mute.FIELD_MODERATOR'), value: interaction.user.tag, inline: true },
+          { name: t(guildId, 'mod.mute.FIELD_DURATION'),  value: `${duration} ${label}`, inline: true },
+          { name: t(guildId, 'mod.mute.FIELD_REASON'),    value: reason, inline: false }
         )
         .setTimestamp();
-      await logChannel.send({ embeds: [embed] });
+      await logCh.send({ embeds: [embed] });
     }
   }
 };

@@ -1,0 +1,117 @@
+{
+  "general": {
+    "ERR_INTERNAL": "❌ An internal error occurred. Please try again later.",
+    "NO_PERMISSION": "🔒 You don't have permission to do that.",
+    "SETLANG_DESCRIPTION": "Set the bot's language for this server",
+    "LANG_PT": "Português",
+    "LANG_EN": "English",
+    "SETLANG_SUCCESS": "✅ Language changed to **{lang}**.",
+    "SETLANG_OPTION_DESCRIPTION": "Choose the desired language"
+  },
+  "ping": {
+    "DESCRIPTION": "Replies with API latency",
+    "RESPONSE": "🏓 API latency: {latency} ms"
+  },
+  "help": {
+    "DESCRIPTION": "Show all available commands",
+    "TITLE": "📖 Command Center",
+    "EMBED_DESCRIPTION": "Here are the features you can use:",
+    "CATEGORY_SLASH": "🔹 Slash Commands",
+    "CATEGORY_PREFIX": "🔸 Prefix Commands",
+    "EMPTY_SLASH": "No slash commands registered.",
+    "EMPTY_PREFIX": "No prefix commands registered.",
+    "NO_DESCRIPTION": "No description"
+  },
+  "ticket": {
+    "DESCRIPTION": "Support ticket system",
+    "OPEN_SUB": "Open a new ticket",
+    "CLOSE_SUB": "Close the current ticket",
+    "SUBJECT_OPTION": "Subject of the ticket",
+    "ERR_CONFIG": "Internal configuration error.",
+    "ALREADY": "You already have an open ticket.",
+    "ERR_OPEN": "Internal error opening ticket.",
+    "CREATE_TITLE": "📩 Ticket #{id} created!",
+    "CREATE_DESC": "**{user}** requested support.\n> {subject}",
+    "BUTTON_CLOSE": "Close ticket",
+    "REPLY_OPEN": "✅ Ticket opened: {channel}",
+    "ERR_NOT_CHANNEL": "This channel is not a valid ticket.",
+    "REPLY_CLOSED": "✅ Ticket #{id} closed."
+  },
+  "rr": {
+    "DESCRIPTION": "Manage reaction roles",
+    "ADD_SUB": "Add a reaction role",
+    "REMOVE_SUB": "Remove a reaction role",
+    "LIST_SUB": "List all reaction roles in this server",
+    "MSG_OPTION": "Message ID",
+    "EMOJI_OPTION": "Emoji (unicode or custom)",
+    "ROLE_OPTION": "Role to assign",
+    "NO_MANAGE_ROLES": "🔒 You need **Manage Roles** permission.",
+    "ADD_SUCCESS": "✅ Reaction role configured!",
+    "REMOVE_SUCCESS": "🗑️ Reaction role removed.",
+    "LIST_EMPTY": "No reaction roles configured.",
+    "ERROR_REACT": "Could not add reaction.",
+    "LIST_MSG_LABEL": "Msg:",
+    "LIST_EMOJI_LABEL": "Emoji:"
+  },
+  "announce": {
+    "DESCRIPTION": "Have the bot post a message in the chosen channel",
+    "PERMISSION_DENIED": "🔒 Only administrators can use this.",
+    "SENT": "✅ Message sent in {channel}",
+    "CHANNEL_DESCRIPTION": "The channel to send the message in",
+    "MESSAGE_DESCRIPTION": "The message to be sent"
+  },
+  "mod": {
+    "kick": {
+      "DESCRIPTION": "Expel a user from the server",
+      "USER_OPTION": "User to expel",
+      "REASON_OPTION": "Reason for expulsion",
+      "NO_PERM": "🔒 You cannot kick members.",
+      "REASON_UNSPECIFIED": "No reason specified",
+      "CANNOT_KICK": "❌ I cannot expel that user.",
+      "SUCCESS": "✅ {user} has been expelled from the server.",
+      "EMBED_TITLE": "👢 Kick",
+      "FIELD_USER": "User",
+      "FIELD_MODERATOR": "Moderator",
+      "FIELD_REASON": "Reason"
+    },
+    "ban": {
+      "DESCRIPTION": "Ban a user from the server",
+      "USER_OPTION": "User to ban",
+      "REASON_OPTION": "Reason for ban",
+      "DAYS_OPTION": "Days of messages to delete (0–7)",
+      "NO_PERM": "🔒 You cannot ban members.",
+      "REASON_UNSPECIFIED": "No reason specified",
+      "SUCCESS": "✅ {user} has been banned.",
+      "EMBED_TITLE": "🔨 Ban",
+      "FIELD_USER": "User",
+      "FIELD_MODERATOR": "Moderator",
+      "FIELD_REASON": "Reason",
+      "FIELD_DELETE_MSGS": "Delete Msgs",
+      "DELETE_MSGS_VALUE": "{days} day(s)"
+    },
+    "mute": {
+      "DESCRIPTION": "Apply or remove native timeout for a user",
+      "USER_OPTION": "User to mute/unmute",
+      "DURATION_OPTION": "Mute duration (number)",
+      "UNIT_OPTION": "Time unit",
+      "UNIT_MINUTE": "Minute",
+      "UNIT_MINUTES": "Minutes",
+      "UNIT_HOUR": "Hour",
+      "UNIT_HOURS": "Hours",
+      "UNIT_DAY": "Day",
+      "UNIT_DAYS": "Days",
+      "REASON_OPTION": "Reason for mute",
+      "NO_PERM": "🔒 You don't have permission to mute members.",
+      "REASON_UNSPECIFIED": "No reason specified",
+      "UNSPECIFY_DURATION": "❌ Specify a duration to mute, or use `/mute user duration:0` to unmute.",
+      "SUCCESS": "🔇 {user} was muted for {duration} {unitLabel}.",
+      "UNMUTED": "🔊 {user} was unmuted.",
+      "EMBED_TITLE_MUTE": "🔇 Mute",
+      "EMBED_TITLE_UNMUTE": "🔊 Unmute",
+      "FIELD_USER": "User",
+      "FIELD_MODERATOR": "Moderator",
+      "FIELD_REASON": "Reason",
+      "FIELD_DURATION": "Duration"
+    }
+  }
+}

@@ -2,99 +2,138 @@
 const {
   SlashCommandBuilder,
   ChannelType,
-  PermissionsBitField
+  PermissionsBitField,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder
 } = require('discord.js');
 const { getStore, saveStore } = require('../../stores/ticketStore');
-const path = require('path');
+const { t } = require('../../utils/i18n');
+const pt = require('../../locales/pt.json');
+const en = require('../../locales/en.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('ticket')
-    .setDescription('Sistema de tickets de suporte')
+    // fallback EN
+    .setDescription(en.ticket.DESCRIPTION)
+    .setDescriptionLocalizations({
+      'pt-BR': pt.ticket.DESCRIPTION,
+      'en-US': en.ticket.DESCRIPTION
+    })
     .addSubcommand(sub =>
       sub
         .setName('open')
-        .setDescription('Abre um novo ticket')
+        .setDescription(en.ticket.OPEN_SUB)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.ticket.OPEN_SUB,
+          'en-US': en.ticket.OPEN_SUB
+        })
         .addStringOption(opt =>
           opt
             .setName('subject')
-            .setDescription('Motivo do ticket')
+            .setDescription(en.ticket.SUBJECT_OPTION)
+            .setDescriptionLocalizations({
+              'pt-BR': pt.ticket.SUBJECT_OPTION,
+              'en-US': en.ticket.SUBJECT_OPTION
+            })
             .setRequired(true)
         )
     )
     .addSubcommand(sub =>
-      sub.setName('close').setDescription('Fecha o ticket atual')
+      sub
+        .setName('close')
+        .setDescription(en.ticket.CLOSE_SUB)
+        .setDescriptionLocalizations({
+          'pt-BR': pt.ticket.CLOSE_SUB,
+          'en-US': en.ticket.CLOSE_SUB
+        })
     ),
 
   async execute(interaction) {
-    const flags   = 1 << 6;                  // resposta efêmera
+    const flags   = 1 << 6;
     const guildId = interaction.guild.id;
     const userId  = interaction.user.id;
-    const sub     = interaction.options.getSubcommand();
+    const staffRoleId = process.env.STAFF_ROLE_ID;
 
-    // carrega o store
+
+    await interaction.deferReply({ flags });
+
+    if (!staffRoleId) {
+      console.error('[TICKET] STAFF_ROLE_ID missing');
+      return interaction.editReply({ content: t(guildId, 'ticket.ERR_CONFIG'), flags });
+    }
+
     const store = await getStore();
-    // inicializa se ainda não existe
-    if (!store.nextId) store.nextId = 1;
-    if (!store.data)  store.data  = {};
+    store.nextId = store.nextId ?? 1;
+    store.data   = store.data   ?? {};
+
+    const sub = interaction.options.getSubcommand();
 
     if (sub === 'open') {
-      // checa se já há ticket aberto
-      const already = Object.values(store.data).find(t =>
-        t.guildId === guildId && t.userId === userId
-      );
-      if (already) {
-        return interaction.reply({ content: 'Você já tem um ticket aberto.', flags });
+      if (Object.values(store.data).some(t => t.guildId === guildId && t.userId === userId)) {
+        return interaction.editReply({ content: t(guildId, 'ticket.ALREADY'), flags });
       }
 
-      // 1) gere um ID único
-      const id = store.nextId++;
-      // ainda não temos channelId; só persistimos depois de criar o canal
-
       const subject = interaction.options.getString('subject');
+      const id      = store.nextId++;
+      const name    = `ticket-${String(id).padStart(4, '0')}`;
 
-      // 2) crie o canal usando esse ID
-      const channelName = `ticket-${String(id).padStart(4,'0')}`;
-      const channel = await interaction.guild.channels.create({
-        name: channelName,
-        type: ChannelType.GuildText,
-        permissionOverwrites: [
-          { id: interaction.guild.roles.everyone.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-          { id: userId,                                  allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
-          { id: process.env.STAFF_ROLE_ID,               allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }
-        ]
-      });
+      let channel;
+      try {
+        channel = await interaction.guild.channels.create({
+          name,
+          type: ChannelType.GuildText,
+          permissionOverwrites: [
+            { id: interaction.guild.roles.everyone.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+            { id: userId, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
+            { id: staffRoleId, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }
+          ]
+        });
+      } catch (err) {
+        console.error('[TICKET] create channel failed', err);
+        return interaction.editReply({ content: t(guildId, 'ticket.ERR_OPEN'), flags });
+      }
 
-      // 3) armazene no JSON com channelId e ID
-      store.data[id] = {
-        guildId,
-        userId,
-        channelId: channel.id,
-        subject,
-        openedAt: Date.now()
-      };
-      await saveStore(store);
+      store.data[id] = { guildId, userId, channelId: channel.id, subject, openedAt: Date.now() };
+      try {
+        await saveStore(store);
+      } catch (err) {
+        console.error('[TICKET] saveStore failed', err);
+        return interaction.editReply({ content: t(guildId, 'ticket.ERR_OPEN'), flags });
+      }
 
-      // 4) responda e mande a mensagem no canal
-      await interaction.reply({ content: `✅ Ticket #${id} aberto: ${channel}`, flags });
-      return channel.send(`📩 Ticket #${id} criado por ${interaction.user}. Assunto: **${subject}**`);
+      const embed = new EmbedBuilder()
+        .setTitle(t(guildId, 'ticket.CREATE_TITLE', { id }))
+        .setDescription(t(guildId, 'ticket.CREATE_DESC', {
+          user: interaction.user.toString(),
+          subject
+        }))
+        .setColor(0x00AE86)
+        .setTimestamp();
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`close_ticket_${id}`)
+          .setLabel(t(guildId, 'ticket.BUTTON_CLOSE'))
+          .setStyle(ButtonStyle.Danger)
+      );
+
+      await interaction.editReply({ content: t(guildId, 'ticket.REPLY_OPEN', { channel: channel.toString() }), flags });
+      return channel.send({ embeds: [embed], components: [row] });
     }
 
     // CLOSE
-    // fecha pelo canal atual
-    const entry = Object.entries(store.data).find(([, t]) => t.channelId === interaction.channelId);
+    const entry = Object.entries(store.data).find(([, t]) => t.channelId === interaction.channel.id);
     if (!entry) {
-      return interaction.reply({ content: 'Este canal não é um ticket válido.', flags });
+      return interaction.editReply({ content: t(guildId, 'ticket.ERR_NOT_CHANNEL'), flags });
     }
     const [closeId] = entry;
-
-    // remova e salve
     delete store.data[closeId];
     await saveStore(store);
 
-    // responda rápido
-    await interaction.reply({ content: `✅ Ticket #${closeId} fechado.`, flags });
-    // delete o canal imediatamente
+    await interaction.editReply({ content: t(guildId, 'ticket.REPLY_CLOSED', { id: closeId }), flags });
     return interaction.channel.delete().catch(() => {});
   }
 };

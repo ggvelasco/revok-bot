@@ -1,0 +1,117 @@
+{
+  "general": {
+    "ERR_INTERNAL": "❌ Ocorreu um erro interno. Tente novamente mais tarde.",
+    "NO_PERMISSION": "🔒 Você não tem permissão para isso.",
+    "SETLANG_DESCRIPTION": "Define o idioma do bot neste servidor",
+    "LANG_PT": "Português",
+    "LANG_EN": "Inglês",
+    "SETLANG_SUCCESS": "✅ Idioma alterado para **{lang}**.",
+    "SETLANG_OPTION_DESCRIPTION": "Selecione o idioma desejado"
+  },
+  "ping": {
+    "DESCRIPTION": "Responde com a latência da API",
+    "RESPONSE": "🏓 Latência da API: {latency} ms"
+  },
+  "help": {
+    "DESCRIPTION": "Exibe todos os comandos disponíveis",
+    "TITLE": "📖 Central de Comandos",
+    "EMBED_DESCRIPTION": "Aqui estão as funcionalidades que você pode usar:",
+    "CATEGORY_SLASH": "🔹 Comandos Slash",
+    "CATEGORY_PREFIX": "🔸 Comandos Prefix",
+    "EMPTY_SLASH": "Nenhum comando slash registrado.",
+    "EMPTY_PREFIX": "Nenhum comando prefix registrado.",
+    "NO_DESCRIPTION": "Sem descrição"
+  },
+  "ticket": {
+    "DESCRIPTION": "Sistema de tickets de suporte",
+    "OPEN_SUB": "Abre um novo ticket",
+    "CLOSE_SUB": "Fecha o ticket atual",
+    "SUBJECT_OPTION": "Motivo do ticket",
+    "ERR_CONFIG": "Erro interno de configuração.",
+    "ALREADY": "Você já tem um ticket aberto.",
+    "ERR_OPEN": "Erro interno ao abrir ticket.",
+    "CREATE_TITLE": "📩 Ticket #{id} criado!",
+    "CREATE_DESC": "**{user}** solicitou suporte.\n> {subject}",
+    "BUTTON_CLOSE": "Fechar ticket",
+    "REPLY_OPEN": "✅ Ticket aberto: {channel}",
+    "ERR_NOT_CHANNEL": "Este canal não é um ticket válido.",
+    "REPLY_CLOSED": "✅ Ticket #{id} fechado."
+  },
+  "rr": {
+    "DESCRIPTION": "Gerencia Reaction‑Roles",
+    "ADD_SUB": "Adiciona um cargo por reação",
+    "REMOVE_SUB": "Remove uma Reaction‑Role",
+    "LIST_SUB": "Lista todas as Reaction‑Roles do servidor",
+    "MSG_OPTION": "ID da mensagem",
+    "EMOJI_OPTION": "Emoji (unicode ou custom)",
+    "ROLE_OPTION": "Cargo a ser atribuído",
+    "NO_MANAGE_ROLES": "🔒 Você precisa de permissão **Manage Roles**.",
+    "ADD_SUCCESS": "✅ Reaction‑Role configurada!",
+    "REMOVE_SUCCESS": "🗑️ Reaction‑Role removida.",
+    "LIST_EMPTY": "Nenhuma Reaction‑Role configurada.",
+    "ERROR_REACT": "Não consegui adicionar a reação.",
+    "LIST_MSG_LABEL": "Msg:",
+    "LIST_EMOJI_LABEL": "Emoji:"
+  },
+  "announce": {
+    "DESCRIPTION": "Faz o bot postar uma mensagem no canal escolhido",
+    "PERMISSION_DENIED": "🔒 Só administradores podem usar isso.",
+    "SENT": "✅ Mensagem enviada em {channel}",
+    "CHANNEL_DESCRIPTION": "O canal para enviar a mensagem",
+    "MESSAGE_DESCRIPTION": "A mensagem a ser enviada"
+  },
+  "mod": {
+    "kick": {
+      "DESCRIPTION": "Expulsa um usuário do servidor",
+      "USER_OPTION": "Usuário a ser expulso",
+      "REASON_OPTION": "Motivo da expulsão",
+      "NO_PERM": "🔒 Você não pode expulsar membros.",
+      "REASON_UNSPECIFIED": "Sem motivo especificado",
+      "CANNOT_KICK": "❌ Não posso expulsar esse usuário.",
+      "SUCCESS": "✅ {user} foi expulso do servidor.",
+      "EMBED_TITLE": "👢 Expulsão",
+      "FIELD_USER": "Usuário",
+      "FIELD_MODERATOR": "Moderador",
+      "FIELD_REASON": "Motivo"
+    },
+    "ban": {
+      "DESCRIPTION": "Bane um usuário do servidor",
+      "USER_OPTION": "Usuário a ser banido",
+      "REASON_OPTION": "Motivo do ban",
+      "DAYS_OPTION": "Dias de mensagens a deletar (0–7)",
+      "NO_PERM": "🔒 Você não pode banir membros.",
+      "REASON_UNSPECIFIED": "Sem motivo especificado",
+      "SUCCESS": "✅ {user} foi banido do servidor.",
+      "EMBED_TITLE": "🔨 Banimento",
+      "FIELD_USER": "Usuário",
+      "FIELD_MODERATOR": "Moderador",
+      "FIELD_REASON": "Motivo",
+      "FIELD_DELETE_MSGS": "Delete Msgs",
+      "DELETE_MSGS_VALUE": "{days} dia(s)"
+    },
+    "mute": {
+      "DESCRIPTION": "Aplica ou remove timeout nativo (mute) de um usuário",
+      "USER_OPTION": "Usuário a ser mutado/desmutado",
+      "DURATION_OPTION": "Duração do mute (número)",
+      "UNIT_OPTION": "Unidade de tempo",
+      "UNIT_MINUTE": "Minuto",
+      "UNIT_MINUTES": "Minutos",
+      "UNIT_HOUR": "Hora",
+      "UNIT_HOURS": "Horas",
+      "UNIT_DAY": "Dia",
+      "UNIT_DAYS": "Dias",
+      "REASON_OPTION": "Motivo do mute",
+      "NO_PERM": "🔒 Você não tem permissão para mutar membros.",
+      "REASON_UNSPECIFIED": "Sem motivo especificado",
+      "UNSPECIFY_DURATION": "❌ Especifique uma duração para mutar, ou use `/mute user duration:0` para desmutar.",
+      "SUCCESS": "🔇 {user} foi mutado por {duration} {unitLabel}.",
+      "UNMUTED": "🔊 {user} foi desmutado.",
+      "EMBED_TITLE_MUTE": "🔇 Mute",
+      "EMBED_TITLE_UNMUTE": "🔊 Desmute",
+      "FIELD_USER": "Usuário",
+      "FIELD_MODERATOR": "Moderador",
+      "FIELD_REASON": "Motivo",
+      "FIELD_DURATION": "Duração"
+    }
+  }
+}

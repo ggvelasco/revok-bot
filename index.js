@@ -1,5 +1,5 @@
 // index.js
-
+const DRY_RUN = process.env.DRY_RUN === 'true';
 
 require("dotenv").config();
 const fs = require("fs");

@@ -8,7 +8,7 @@ module.exports = {
   async execute(interaction) {
     // só permitir admin
     if (!interaction.member.permissions.has('ManageGuild')) {
-      return interaction.reply({ content: '🔒 Só Administradores podem usar.', ephemeral: true });
+      return interaction.reply({ content: '🔒 Só Administradores podem usar.', flags: 1 << 6 });
     }
 
     const embed = new EmbedBuilder()
@@ -29,6 +29,6 @@ module.exports = {
 
     // manda o embed no mesmo canal onde executou
     await interaction.channel.send({ embeds: [embed] });
-    await interaction.reply({ content: '✅ Painel postado!', ephemeral: true });
+    await interaction.reply({ content: '✅ Painel postado!', flags: 1 << 6 });
   }
 };
