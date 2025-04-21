@@ -4,6 +4,7 @@ const { getGuildConfig, saveGuildConfig } = require('../../stores/guildConfigSto
 const { t } = require('../../utils/i18n');
 const pt = require('../../locales/pt.json');
 const en = require('../../locales/en.json');
+const es = require('../../locales/es.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,6 +14,7 @@ module.exports = {
     // localizações para o Discord client
     .setDescriptionLocalizations({
       'pt-BR': pt.general.SETLANG_DESCRIPTION,
+      'es-ES': es.general.SETLANG_DESCRIPTION,
       'en-US': en.general.SETLANG_DESCRIPTION
     })
     .addStringOption(opt =>
@@ -21,6 +23,7 @@ module.exports = {
         .setDescription(en.general.SETLANG_OPTION_DESCRIPTION)
         .setDescriptionLocalizations({
           'pt-BR': pt.general.SETLANG_OPTION_DESCRIPTION,
+          'es-ES': es.general.SETLANG_OPTION_DESCRIPTION,
           'en-US': en.general.SETLANG_OPTION_DESCRIPTION
         })
         .addChoices(

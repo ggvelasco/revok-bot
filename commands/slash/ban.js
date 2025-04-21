@@ -12,6 +12,7 @@ const {
 const { t } = require('../../utils/i18n');
 const pt = require('../../locales/pt.json');
 const en = require('../../locales/en.json');
+const es = require('../../locales/es.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,6 +22,7 @@ module.exports = {
     // localizações para o Discord client
     .setDescriptionLocalizations({
       'pt-BR': pt.mod.ban.DESCRIPTION,
+      'es-ES': es.mod.ban.DESCRIPTION,
       'en-US': en.mod.ban.DESCRIPTION
     })
 
@@ -30,6 +32,7 @@ module.exports = {
         .setDescription(en.mod.ban.USER_OPTION)
         .setDescriptionLocalizations({
           'pt-BR': pt.mod.ban.USER_OPTION,
+          'es-ES': es.mod.ban.USER_OPTION,
           'en-US': en.mod.ban.USER_OPTION
         })
         .setRequired(true)
@@ -40,6 +43,7 @@ module.exports = {
         .setDescription(en.mod.ban.REASON_OPTION)
         .setDescriptionLocalizations({
           'pt-BR': pt.mod.ban.REASON_OPTION,
+          'es-ES': es.mod.ban.REASON_OPTION,
           'en-US': en.mod.ban.REASON_OPTION
         })
     )
@@ -49,6 +53,7 @@ module.exports = {
         .setDescription(en.mod.ban.DAYS_OPTION)
         .setDescriptionLocalizations({
           'pt-BR': pt.mod.ban.DAYS_OPTION,
+          'es-ES': es.mod.ban.DAYS_OPTION,
           'en-US': en.mod.ban.DAYS_OPTION
         })
         .setRequired(false)

@@ -12,6 +12,7 @@ const { getStore, saveStore } = require('../../stores/ticketStore');
 const { t } = require('../../utils/i18n');
 const pt = require('../../locales/pt.json');
 const en = require('../../locales/en.json');
+const es = require('../../locales/es.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,6 +21,7 @@ module.exports = {
     .setDescription(en.ticket.DESCRIPTION)
     .setDescriptionLocalizations({
       'pt-BR': pt.ticket.DESCRIPTION,
+      'es-ES': es.ticket.DESCRIPTION,
       'en-US': en.ticket.DESCRIPTION
     })
     .addSubcommand(sub =>
@@ -28,6 +30,7 @@ module.exports = {
         .setDescription(en.ticket.OPEN_SUB)
         .setDescriptionLocalizations({
           'pt-BR': pt.ticket.OPEN_SUB,
+          'es-ES': es.ticket.OPEN_SUB,
           'en-US': en.ticket.OPEN_SUB
         })
         .addStringOption(opt =>
@@ -36,6 +39,7 @@ module.exports = {
             .setDescription(en.ticket.SUBJECT_OPTION)
             .setDescriptionLocalizations({
               'pt-BR': pt.ticket.SUBJECT_OPTION,
+              'es-ES': es.ticket.SUBJECT_OPTION,
               'en-US': en.ticket.SUBJECT_OPTION
             })
             .setRequired(true)
@@ -47,6 +51,7 @@ module.exports = {
         .setDescription(en.ticket.CLOSE_SUB)
         .setDescriptionLocalizations({
           'pt-BR': pt.ticket.CLOSE_SUB,
+          'es-ES': es.ticket.CLOSE_SUB,
           'en-US': en.ticket.CLOSE_SUB
         })
     ),

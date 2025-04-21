@@ -2,6 +2,7 @@
 const { t } = require('../../utils/i18n');
 const pt = require('../../locales/pt.json');
 const en = require('../../locales/en.json');
+const es = require('../../locales/es.json');
 const {
   SlashCommandBuilder,
   PermissionsBitField,
@@ -16,6 +17,7 @@ module.exports = {
     // traduções para o Discord client
     .setDescriptionLocalizations({
       'pt-BR': pt.announce.DESCRIPTION,
+      'es-ES': es.announce.DESCRIPTION,
       'en-US': en.announce.DESCRIPTION
     })
 
@@ -27,6 +29,7 @@ module.exports = {
         // localizações
         .setDescriptionLocalizations({
           'pt-BR': pt.announce.CHANNEL_DESCRIPTION,
+          'es-ES': es.announce.CHANNEL_DESCRIPTION,
           'en-US': en.announce.CHANNEL_DESCRIPTION
         })
         .addChannelTypes(ChannelType.GuildText)
@@ -41,6 +44,7 @@ module.exports = {
         // localizações
         .setDescriptionLocalizations({
           'pt-BR': pt.announce.MESSAGE_DESCRIPTION,
+          'es-ES': es.announce.MESSAGE_DESCRIPTION,
           'en-US': en.announce.MESSAGE_DESCRIPTION
         })
         .setRequired(true)

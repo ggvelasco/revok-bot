@@ -3,6 +3,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { t } = require('../../utils/i18n');
 const pt = require('../../locales/pt.json');
 const en = require('../../locales/en.json');
+const es = require('../../locales/es.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,6 +13,7 @@ module.exports = {
     // localizações para o Discord client
     .setDescriptionLocalizations({
       'pt-BR': pt.help.DESCRIPTION,
+      'es-ES': es.help.DESCRIPTION,
       'en-US': en.help.DESCRIPTION
     }),
 
