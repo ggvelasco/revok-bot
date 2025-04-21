@@ -23,6 +23,7 @@ async function getGuildConfig(guildId) {
     goodbyeChannelId: null,
     goodbyeMessage: null,
     autoRoleId: null,
+    disabledCommands: [],
   };
   if (!db[guildId]) {
     db[guildId] = defaults;

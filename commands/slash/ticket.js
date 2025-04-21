@@ -66,9 +66,20 @@ module.exports = {
     await interaction.deferReply({ flags });
 
     if (!staffRoleId) {
-      console.error("[TICKET] STAFF_ROLE_ID missing");
+      // Se quem chamou não é admin, diz para pedir ao admin
+      if (
+        !interaction.member.permissions.has(
+          PermissionsBitField.Flags.ManageRoles
+        )
+      ) {
+        return interaction.editReply({
+          content: t(guildId, "ticket.ERR_NOT_CONFIG_USER"),
+          flags,
+        });
+      }
+      // Se for admin, instrução direta
       return interaction.editReply({
-        content: t(guildId, "ticket.ERR_CONFIG"),
+        content: t(guildId, "ticket.ERR_NOT_CONFIG_ADMIN"),
         flags,
       });
     }

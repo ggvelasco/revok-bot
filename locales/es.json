@@ -41,7 +41,11 @@
     "SUCCESS_GOODBYE_MESSAGE": "✅ Mensaje de despedida actualizado.",
     "SUCCESS_AUTOROLE": "✅ Rol automático establecido en {role}.",
     "DEFAULT_WELCOME": "👋 Bienvenido, {user}!",
-    "DEFAULT_GOODBYE": "👋 Adiós, {user}!"
+    "DEFAULT_GOODBYE": "👋 Adiós, {user}!",
+    "DISABLE_SUB": "Desactivar un comando",
+    "DISABLE_OPTION": "Nombre del comando a desactivar",
+    "ENABLE_SUB": "Activar un comando",
+    "ENABLE_OPTION": "Nombre del comando a activar"
   },
   "ping": {
     "DESCRIPTION": "Responde con la latencia de la API",
@@ -85,7 +89,9 @@
     "BUTTON_CLOSE": "Cerrar ticket",
     "REPLY_OPEN": "✅ Ticket abierto: {channel}",
     "ERR_NOT_CHANNEL": "Este canal no es un ticket válido.",
-    "REPLY_CLOSED": "✅ Ticket #{id} cerrado."
+    "REPLY_CLOSED": "✅ Ticket #{id} cerrado.",
+    "ERR_NOT_CONFIG_USER": "❌ El sistema de tickets aún no está configurado. Pide a un administrador que use `/config staffrole @Rol`.",
+    "ERR_NOT_CONFIG_ADMIN": "❌ Sistema de tickets no configurado. Establece un rol de staff con `/config staffrole @Rol` para habilitarlo."
   },
   "rr": {
     "DESCRIPTION": "Gestiona Reaction‑Roles",

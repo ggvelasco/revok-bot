@@ -8,6 +8,7 @@
     "welcomeMessage": "Bem vindo à Dragon Society, {user}!",
     "goodbyeChannelId": "1363727730813964288",
     "goodbyeMessage": "Até nunca mais, {user}.",
-    "autoRoleId": "1358655968073748663"
+    "autoRoleId": "1358655968073748663",
+    "disabledCommands": []
   }
 }

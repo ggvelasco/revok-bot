@@ -1,46 +1,39 @@
 // events/interactionCreate.js
-const { PermissionsBitField } = require('discord.js');
-const { getStore, saveStore } = require('../stores/ticketStore');
-const { t } = require('../utils/i18n');
+const { getGuildConfig } = require('../stores/guildConfigStore');
+const { t }             = require('../utils/i18n');
 
 module.exports = {
   name: 'interactionCreate',
   async execute(interaction) {
-    const flags = 1 << 6; // sempre efêmero via flags
-
-    // ─── Fechar Ticket via Botão ──────────────────────────
-    if (interaction.isButton() && interaction.customId.startsWith('close_ticket_')) {
-      await interaction.deferReply({ flags });
-      const guildId = interaction.guild.id;
-      const id = interaction.customId.split('close_ticket_')[1];
-
-      // carrega store e valida
-      const store = await getStore();
-      const entry = store.data[id];
-      if (!entry || entry.channelId !== interaction.channel.id) {
-        return interaction.editReply({ content: t(guildId, 'ticket.ERR_NOT_CHANNEL'), flags });
-      }
-
-      // só permitidos: autor do ticket ou quem gerencia canais
-      const member = interaction.member;
-      if (
-        interaction.user.id !== entry.userId &&
-        !member.permissions.has(PermissionsBitField.Flags.ManageChannels)
-      ) {
-        return interaction.editReply({ content: t(guildId, 'general.NO_PERMISSION'), flags });
-      }
-
-      // remove e salva
-      delete store.data[id];
-      await saveStore(store);
-
-      // responder e deletar canal
-      await interaction.editReply({ content: t(guildId, 'ticket.REPLY_CLOSED', { id }), flags });
-      return interaction.channel.delete().catch(() => {});
+    // ————————————————————————————————————— Autocomplete —————————————————————————————————————
+    if (interaction.isAutocomplete()) {
+      // o que o usuário já digitou no campo
+      const focused = interaction.options.getFocused();
+      // todas as opções possíveis (nomes de slash commands)
+      const choices = [...interaction.client.slashCommands.keys()];
+      // filtra pelos que começam com o texto digitado e limita a 25
+      const filtered = choices
+        .filter(cmd => cmd.startsWith(focused))
+        .slice(0, 25);
+      // responde com o array de { name, value }
+      return interaction.respond(
+        filtered.map(name => ({ name, value: name }))
+      );
     }
 
-    // ─── Slash Commands ────────────────────────────────────
+    // —————————————————————————————————— Comandos de chatInput ——————————————————————————————————
     if (!interaction.isChatInputCommand()) return;
+
+    const guildId = interaction.guild.id;
+    const cfg     = await getGuildConfig(guildId);
+
+    // bloqueia comandos desativados
+    if (cfg.disabledCommands.includes(interaction.commandName)) {
+      return interaction.reply({
+        content: t(guildId, 'config.COMMAND_DISABLED', { command: interaction.commandName }),
+        flags: 1 << 6
+      });
+    }
 
     const command = interaction.client.slashCommands.get(interaction.commandName);
     if (!command) return;
@@ -48,14 +41,11 @@ module.exports = {
     try {
       await command.execute(interaction);
     } catch (err) {
-      console.error('[INTERACTION] Error:', err);
-      const guildId = interaction.guild?.id;
-      const reply = { content: t(guildId, 'general.ERR_INTERNAL'), flags };
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply(reply);
-      } else {
-        await interaction.reply(reply);
-      }
+      console.error('[INTERACTION]', err);
+      return interaction.reply({
+        content: t(guildId, 'general.ERR_INTERNAL'),
+        flags: 1 << 6
+      });
     }
   }
 };

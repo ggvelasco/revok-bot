@@ -1,22 +1,16 @@
 // commands/slash/help.js
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { t } = require('../../utils/i18n');
-const pt = require('../../locales/pt.json');
-const en = require('../../locales/en.json');
-const es = require('../../locales/es.json');
+const { getGuildConfig } = require('../../stores/guildConfigStore');
+const { t }              = require('../../utils/i18n');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription(en.help.DESCRIPTION)
-    .setDescriptionLocalizations({
-      'pt-BR': pt.help.DESCRIPTION,
-      'en-US': en.help.DESCRIPTION,
-      'es-ES': es.help.DESCRIPTION
-    }),
+    .setDescription('Show all available commands'),
 
   async execute(interaction) {
     const guildId = interaction.guild.id;
+    const cfg     = await getGuildConfig(guildId);
     const { slashCommands, prefixCommands } = interaction.client;
 
     const embed = new EmbedBuilder()
@@ -26,9 +20,11 @@ module.exports = {
       .setTimestamp();
 
     // Slash commands
-    const slashList = slashCommands.map(cmd => {
-      // tenta pegar t(guildId, `help.COMMANDS.${cmd.data.name}`), senão fallback
-      const key = `help.COMMANDS.${cmd.data.name}`;
+    const activeSlash = slashCommands.filter(cmd =>
+      !cfg.disabledCommands.includes(cmd.data.name)
+    );
+    const slashList = activeSlash.map(cmd => {
+      const key  = `help.COMMANDS.${cmd.data.name}`;
       const desc = t(guildId, key, {}, cmd.data.description);
       return `• **/${cmd.data.name}** — ${desc}`;
     }).join('\n') || t(guildId, 'help.EMPTY_SLASH');
@@ -39,10 +35,13 @@ module.exports = {
     });
 
     // Prefix commands
-    const prefixList = prefixCommands.map(cmd => {
-      const key = `help.COMMANDS.${cmd.name}`;
+    const activePrefix = prefixCommands.filter(cmd =>
+      !cfg.disabledCommands.includes(cmd.name)
+    );
+    const prefixList = activePrefix.map(cmd => {
+      const key  = `help.COMMANDS.${cmd.name}`;
       const desc = t(guildId, key, {}, cmd.description || t(guildId, 'help.NO_DESCRIPTION'));
-      return `• **!${cmd.name}** — ${desc}`;
+      return `• **${cfg.prefix}${cmd.name}** — ${desc}`;
     }).join('\n') || t(guildId, 'help.EMPTY_PREFIX');
 
     embed.addFields({

@@ -41,7 +41,15 @@
     "SUCCESS_GOODBYE_MESSAGE": "✅ Goodbye message updated.",
     "SUCCESS_AUTOROLE": "✅ Auto‑role set to {role}.",
     "DEFAULT_WELCOME": "👋 Welcome, {user}!",
-    "DEFAULT_GOODBYE": "👋 Bye bye, {user}!"
+    "DEFAULT_GOODBYE": "👋 Bye bye, {user}!",
+    "DISABLE_SUB": "Disable a command",
+    "DISABLE_OPTION": "Name of command to disable",
+    "ENABLE_SUB": "Enable a command",
+    "ENABLE_OPTION": "Name of command to enable",
+    "INVALID_COMMAND": "Invalid command",
+    "SUCCESS_DISABLE": "✅ Command `{command}` disabled.",
+    "SUCCESS_ENABLE": "✅ Command `{command}` enabled.",
+    "COMMAND_DISABLED": "❌ The command `{command}` is disabled on this server."
   },
   "ping": {
     "DESCRIPTION": "Replies with API latency",
@@ -85,7 +93,9 @@
     "BUTTON_CLOSE": "Close ticket",
     "REPLY_OPEN": "✅ Ticket opened: {channel}",
     "ERR_NOT_CHANNEL": "This channel is not a valid ticket.",
-    "REPLY_CLOSED": "✅ Ticket #{id} closed."
+    "REPLY_CLOSED": "✅ Ticket #{id} closed.",
+    "ERR_NOT_CONFIG_USER": "❌ The ticket system isn’t set up yet. Please ask a server admin to run `/config staffrole @Role`.",
+    "ERR_NOT_CONFIG_ADMIN": "❌ Ticket system not configured. Set a staff role with `/config staffrole @Role` to enable it."
   },
   "rr": {
     "DESCRIPTION": "Manage reaction roles",

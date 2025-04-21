@@ -41,7 +41,15 @@
     "SUCCESS_GOODBYE_MESSAGE": "✅ Mensagem de despedida atualizada.",
     "SUCCESS_AUTOROLE": "✅ Cargo automático definido para {role}.",
     "DEFAULT_WELCOME": "👋 Bem-vindo, {user}!",
-    "DEFAULT_GOODBYE": "👋 Adeus, {user}!"
+    "DEFAULT_GOODBYE": "👋 Adeus, {user}!",
+    "DISABLE_SUB": "Desativa um comando",
+    "DISABLE_OPTION": "Nome do comando a desativar",
+    "ENABLE_SUB": "Ativa um comando",
+    "ENABLE_OPTION": "Nome do comando a ativar",
+    "INVALID_COMMAND": "Comando inválido",
+    "SUCCESS_DISABLE": "✅ Comando `{command}` desativado.",
+    "SUCCESS_ENABLE": "✅ Comando `{command}` ativado.",
+    "COMMAND_DISABLED": "❌ O comando `{command}` está desativado neste servidor."
   },
   "ping": {
     "DESCRIPTION": "Responde com a latência da API",
@@ -84,7 +92,9 @@
     "BUTTON_CLOSE": "Fechar ticket",
     "REPLY_OPEN": "✅ Ticket aberto: {channel}",
     "ERR_NOT_CHANNEL": "Este canal não é um ticket válido.",
-    "REPLY_CLOSED": "✅ Ticket #{id} fechado."
+    "REPLY_CLOSED": "✅ Ticket #{id} fechado.",
+    "ERR_NOT_CONFIG_USER": "❌ O sistema de tickets ainda não está configurado. Peça a um administrador para definir um cargo de staff com `/config staffrole @Cargo`.",
+    "ERR_NOT_CONFIG_ADMIN": "❌ Sistema de tickets não configurado. Defina um cargo de staff com `/config staffrole @Cargo` para habilitar."
   },
   "rr": {
     "DESCRIPTION": "Gerencia Reaction‑Roles",
