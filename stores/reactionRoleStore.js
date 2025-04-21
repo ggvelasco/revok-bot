@@ -1,7 +1,12 @@
 // stores/reactionRoleStore.js
 const fs   = require('fs');
 const path = require('path');
-const file = path.join(__dirname, '..', 'reactionRoles.json');
+
+const baseFolder = process.env.DATA_PATH || path.join(__dirname, 'prod');
+if (!fs.existsSync(baseFolder)) {
+  fs.mkdirSync(baseFolder, { recursive: true });
+}
+const file = path.join(baseFolder, 'reactionRoles.json');
 
 function _load() {
   if (!fs.existsSync(file)) return {};

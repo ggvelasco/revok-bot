@@ -1,31 +1,63 @@
 // events/interactionCreate.js
-const { getGuildConfig } = require('../stores/guildConfigStore');
-const { t }             = require('../utils/i18n');
+const {
+  ActionRowBuilder,
+  ButtonStyle,
+  EmbedBuilder
+} = require('discord.js');
+const { getStore, saveStore } = require('../stores/ticketStore');
+const { getGuildConfig }      = require('../stores/guildConfigStore');
+const { t }                   = require('../utils/i18n');
 
 module.exports = {
   name: 'interactionCreate',
   async execute(interaction) {
+    const guildId = interaction.guild?.id;
+
     // ————————————————————————————————————— Autocomplete —————————————————————————————————————
     if (interaction.isAutocomplete()) {
-      // o que o usuário já digitou no campo
       const focused = interaction.options.getFocused();
-      // todas as opções possíveis (nomes de slash commands)
       const choices = [...interaction.client.slashCommands.keys()];
-      // filtra pelos que começam com o texto digitado e limita a 25
-      const filtered = choices
-        .filter(cmd => cmd.startsWith(focused))
-        .slice(0, 25);
-      // responde com o array de { name, value }
-      return interaction.respond(
-        filtered.map(name => ({ name, value: name }))
-      );
+      const filtered = choices.filter(cmd => cmd.startsWith(focused)).slice(0, 25);
+      return interaction.respond(filtered.map(name => ({ name, value: name })));
     }
 
-    // —————————————————————————————————— Comandos de chatInput ——————————————————————————————————
+    // ————————————————————————————————————— Botões —————————————————————————————————————
+    if (interaction.isButton()) {
+      // identifica nosso botão de fechar ticket
+      const match = interaction.customId.match(/^close_ticket_(\d+)$/);
+      if (!match) return; // não é um botão nosso
+      const ticketId = match[1];
+
+      // carrega store e verifica se existe um ticket aberto com aquele ID no canal
+      const store = await getStore();
+      const entry = Object.entries(store.data)
+        .find(([id, t]) =>
+          id === ticketId && t.guildId === guildId && t.channelId === interaction.channel.id
+        );
+
+      if (!entry) {
+        return interaction.reply({
+          content: t(guildId, 'ticket.ERR_NOT_CHANNEL'),
+          flags: 1 << 6
+        });
+      }
+
+      // remove do store e salva
+      delete store.data[ticketId];
+      await saveStore(store);
+
+      // confirma e deleta o canal
+      await interaction.reply({
+        content: t(guildId, 'ticket.REPLY_CLOSED', { id: ticketId }),
+        flags: 1 << 6
+      });
+      return interaction.channel.delete().catch(() => {});
+    }
+
+    // —————————————————————————————————— Slash Commands ——————————————————————————————————
     if (!interaction.isChatInputCommand()) return;
 
-    const guildId = interaction.guild.id;
-    const cfg     = await getGuildConfig(guildId);
+    const cfg = await getGuildConfig(guildId);
 
     // bloqueia comandos desativados
     if (cfg.disabledCommands.includes(interaction.commandName)) {
@@ -42,10 +74,12 @@ module.exports = {
       await command.execute(interaction);
     } catch (err) {
       console.error('[INTERACTION]', err);
-      return interaction.reply({
-        content: t(guildId, 'general.ERR_INTERNAL'),
-        flags: 1 << 6
-      });
+      if (!interaction.replied) {
+        await interaction.reply({
+          content: t(guildId, 'general.ERR_INTERNAL'),
+          flags: 1 << 6
+        });
+      }
     }
   }
 };

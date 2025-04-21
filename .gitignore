@@ -1,3 +1,5 @@
 node_modules/
-.env
+*.env*
 dist/
+/stores/dev/**
+/stores/prod/**

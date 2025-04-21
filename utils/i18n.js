@@ -2,56 +2,55 @@
 const fs   = require('fs');
 const path = require('path');
 
-// aqui o path correto, igual ao seu store
-const CONFIG_FILE = path.join(__dirname, '..', 'guildConfigs.json');
-const LOCALES_DIR = path.join(__dirname, '..', 'locales');
+// Mesma lógica de DATA_PATH que você usa nos stores
+const baseFolder = process.env.DATA_PATH || path.join(__dirname, '..', 'stores', 'prod');
+const CONFIG_FILE = path.join(baseFolder, 'guildConfig.json');
 
-const cache = {};
+// Cache de arquivos de locale para não ficar carregando do disco toda hora
+const localeCache = {};
 
-/** Lê todo o guildConfigs.json em sincrono */
-function loadAllConfigs() {
-  if (!fs.existsSync(CONFIG_FILE)) return {};
-  try {
-    return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-  } catch {
-    return {};
+function t(guildId, key, vars = {}) {
+  // 1) carrega config de guild SINCRONAMENTE
+  let cfgDb = {};
+  if (fs.existsSync(CONFIG_FILE)) {
+    try {
+      cfgDb = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    } catch {}
   }
-}
+  const cfg = cfgDb[guildId] || {};
+  const lang = cfg.language || 'pt';
 
-/**
- * t(guildId, key, vars, fallback)
- * - key: "help.TITLE", "mod.kick.SUCCESS" etc
- * - vars: { user: "...", channel: "..." }
- * - fallback: string (usado se não encontrar)
- */
-function t(guildId, key, vars = {}, fallback = '') {
-  // 1) pega o config do guild e normaliza o idioma
-  const all = loadAllConfigs();
-  const cfg = all[guildId] || {};
-  const lang = (cfg.language || 'pt').toLowerCase();
-
-  // 2) carrega o JSON de locale se ainda não em cache
-  if (!cache[lang]) {
-    const file = path.join(LOCALES_DIR, `${lang}.json`);
-    cache[lang] = JSON.parse(fs.readFileSync(file, 'utf8'));
+  // 2) carrega o locale se ainda não estiver no cache
+  if (!localeCache[lang]) {
+    const localeFile = path.join(__dirname, '..', 'locales', `${lang}.json`);
+    try {
+      localeCache[lang] = JSON.parse(fs.readFileSync(localeFile, 'utf8'));
+    } catch {
+      // se falhar, use o inglês como fallback
+      localeCache[lang] = JSON.parse(fs.readFileSync(
+        path.join(__dirname, '..', 'locales', 'en.json'),
+        'utf8'
+      ));
+    }
   }
-  const dict = cache[lang];
 
-  // 3) percorre a chave
+  // 3) pega a string por key (ex: "ticket.CREATE_TITLE")
   const parts = key.split('.');
-  let str = dict;
+  let str = localeCache[lang];
   for (const p of parts) {
     str = str?.[p];
     if (str == null) break;
   }
   if (typeof str !== 'string') {
-    str = fallback || key;
+    // fallback simples: devolve a própria key
+    return key;
   }
 
-  // 4) substituições
+  // 4) substitui variáveis {id}, {user}, {subject}, etc.
   for (const [k, v] of Object.entries(vars)) {
-    str = str.split(`{${k}}`).join(v);
+    str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
   }
+
   return str;
 }
 

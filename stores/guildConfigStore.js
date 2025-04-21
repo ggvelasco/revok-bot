@@ -1,7 +1,12 @@
 // stores/guildConfigStore.js
 const fs = require("fs");
 const path = require("path");
-const FILE = path.join(__dirname, "..", "guildConfigs.json");
+
+const baseFolder = process.env.DATA_PATH || path.join(__dirname, 'prod');
+if (!fs.existsSync(baseFolder)) {
+  fs.mkdirSync(baseFolder, { recursive: true });
+}
+const FILE = path.join(baseFolder, 'guildConfig.json');
 
 function _load() {
   if (!fs.existsSync(FILE)) return {};

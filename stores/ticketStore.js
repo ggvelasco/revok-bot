@@ -1,38 +1,29 @@
 // stores/ticketStore.js
 const fs   = require('fs');
 const path = require('path');
-const file = path.join(__dirname, '..', 'tickets.json');
+const base = process.env.DATA_PATH || path.join(__dirname, 'prod');
+if (!fs.existsSync(base)) fs.mkdirSync(base, { recursive: true });
+const FILE = path.join(base, 'ticketStore.json');
 
-/**
- * Carrega o JSON de tickets (ou inicializa um se não existir)
- * @returns {{ nextId: number, data: Record<string, any> }}
- */
 function _load() {
-  if (!fs.existsSync(file)) return { nextId: 1, data: {} };
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!fs.existsSync(FILE)) return { nextIdByGuild: {}, data: {} };
+  return JSON.parse(fs.readFileSync(FILE, 'utf8'));
 }
 
-/**
- * Persiste o JSON de tickets
- * @param {{ nextId: number, data: Record<string, any> }} store
- */
-function _save(store) {
-  fs.writeFileSync(file, JSON.stringify(store, null, 2));
+function _save(db) {
+  fs.writeFileSync(FILE, JSON.stringify(db, null, 2));
 }
 
-/**
- * Retorna o objeto inteiro de tickets
- */
 async function getStore() {
-  return _load();
+  const db = _load();
+  // garantir estrutura
+  db.nextIdByGuild = db.nextIdByGuild || {};
+  db.data          = db.data          || {};
+  return db;
 }
 
-/**
- * Salva o objeto de tickets
- * @param {{ nextId: number, data: Record<string, any> }} store
- */
-async function saveStore(store) {
-  _save(store);
+async function saveStore(db) {
+  _save(db);
 }
 
 module.exports = { getStore, saveStore };
