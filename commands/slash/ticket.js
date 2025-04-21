@@ -60,7 +60,7 @@ module.exports = {
     const flags   = 1 << 6;
     const guildId = interaction.guild.id;
     const userId  = interaction.user.id;
-    const staffRoleId = process.env.STAFF_ROLE_ID;
+    const { staffRoleId } = await getGuildConfig(interaction.guild.id);
 
 
     await interaction.deferReply({ flags });
