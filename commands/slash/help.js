@@ -8,13 +8,11 @@ const es = require('../../locales/es.json');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
-    // descrição do client (fallback EN)
     .setDescription(en.help.DESCRIPTION)
-    // localizações para o Discord client
     .setDescriptionLocalizations({
       'pt-BR': pt.help.DESCRIPTION,
-      'es-ES': es.help.DESCRIPTION,
-      'en-US': en.help.DESCRIPTION
+      'en-US': en.help.DESCRIPTION,
+      'es-ES': es.help.DESCRIPTION
     }),
 
   async execute(interaction) {
@@ -27,19 +25,26 @@ module.exports = {
       .setColor(0x00AE86)
       .setTimestamp();
 
-    // Lista de Slash Commands
-    const slashList = slashCommands
-      .map(cmd => `• **/${cmd.data.name}** — ${cmd.data.description}`)
-      .join('\n') || t(guildId, 'help.EMPTY_SLASH');
+    // Slash commands
+    const slashList = slashCommands.map(cmd => {
+      // tenta pegar t(guildId, `help.COMMANDS.${cmd.data.name}`), senão fallback
+      const key = `help.COMMANDS.${cmd.data.name}`;
+      const desc = t(guildId, key, {}, cmd.data.description);
+      return `• **/${cmd.data.name}** — ${desc}`;
+    }).join('\n') || t(guildId, 'help.EMPTY_SLASH');
+
     embed.addFields({
       name: t(guildId, 'help.CATEGORY_SLASH'),
       value: slashList
     });
 
-    // Lista de Prefix Commands
-    const prefixList = prefixCommands
-      .map(cmd => `• **!${cmd.name}** — ${cmd.description || t(guildId, 'help.NO_DESCRIPTION')}`)
-      .join('\n') || t(guildId, 'help.EMPTY_PREFIX');
+    // Prefix commands
+    const prefixList = prefixCommands.map(cmd => {
+      const key = `help.COMMANDS.${cmd.name}`;
+      const desc = t(guildId, key, {}, cmd.description || t(guildId, 'help.NO_DESCRIPTION'));
+      return `• **!${cmd.name}** — ${desc}`;
+    }).join('\n') || t(guildId, 'help.EMPTY_PREFIX');
+
     embed.addFields({
       name: t(guildId, 'help.CATEGORY_PREFIX'),
       value: prefixList

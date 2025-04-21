@@ -1,5 +1,13 @@
 {
   "353017503364022272": {
-    "language": "pt"
+    "prefix": "!!!",
+    "staffRoleId": "1358653140496285802",
+    "logChannelId": "1363376822481457232",
+    "language": "pt",
+    "welcomeChannelId": "1358296346108362894",
+    "welcomeMessage": "Bem vindo à Dragon Society, {user}!",
+    "goodbyeChannelId": "1363727730813964288",
+    "goodbyeMessage": "Até nunca mais, {user}.",
+    "autoRoleId": "1358655968073748663"
   }
 }
