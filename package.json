@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "postinstall": "prisma generate",
+    "start": "npm run prod",
+    "prod": "cross-env NODE_ENV=production node index.js",
     "dev": "cross-env NODE_ENV=development node index.js",
     "deploy:dev": "cross-env NODE_ENV=development node deploy-commands.js",
-    "prod": "cross-env NODE_ENV=production  node index.js",
-    "deploy:prod": "cross-env NODE_ENV=production  node deploy-commands.js",
-    "start": "npm run prod",
-    "prepare": "prisma generate",
-    "postinstall": "prisma generate"
+    "deploy:prod": "cross-env NODE_ENV=production  node deploy-commands.js"
   },
   "keywords": [],
   "author": "",
