@@ -1,49 +1,48 @@
 // stores/guildConfigStore.js
-const fs = require("fs");
-const path = require("path");
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-const baseFolder = process.env.DATA_PATH || path.join(__dirname, 'prod');
-if (!fs.existsSync(baseFolder)) {
-  fs.mkdirSync(baseFolder, { recursive: true });
-}
-const FILE = path.join(baseFolder, 'guildConfig.json');
-
-function _load() {
-  if (!fs.existsSync(FILE)) return {};
-  return JSON.parse(fs.readFileSync(FILE, "utf8"));
-}
-function _save(db) {
-  fs.writeFileSync(FILE, JSON.stringify(db, null, 2));
-}
-
+/**
+ * Obtém a configuração do servidor, criando defaults se não existir.
+ * @param {string} guildId
+ */
 async function getGuildConfig(guildId) {
-  const db = _load();
-  const defaults = {
-    prefix: "!",
-    staffRoleId: null,
-    logChannelId: null,
-    language: "pt",
-    welcomeChannelId: null,
-    welcomeMessage: null,
-    goodbyeChannelId: null,
-    goodbyeMessage: null,
-    autoRoleId: null,
-    disabledCommands: [],
-  };
-  if (!db[guildId]) {
-    db[guildId] = defaults;
-    _save(db);
-  } else {
-    // garante que todas as chaves existam
-    db[guildId] = { ...defaults, ...db[guildId] };
+  let cfg = await prisma.guildConfig.findUnique({
+    where: { guildId }
+  });
+
+  if (!cfg) {
+    // valores padrão
+    cfg = await prisma.guildConfig.create({
+      data: {
+        guildId,
+        prefix: '!',
+        staffRoleId: null,
+        logChannelId: null,
+        language: 'en',
+        welcomeChannelId: null,
+        welcomeMessage: null,
+        goodbyeChannelId: null,
+        goodbyeMessage: null,
+        autoRoleId: null,
+        disabledCommands: []
+      }
+    });
   }
-  return db[guildId];
+
+  return cfg;
 }
 
-async function saveGuildConfig(guildId, cfg) {
-  const db = _load();
-  db[guildId] = cfg;
-  _save(db);
+/**
+ * Atualiza a configuração do servidor.
+ * @param {string} guildId
+ * @param {object} updates — objeto com as propriedades a atualizar
+ */
+async function saveGuildConfig(guildId, updates) {
+  return prisma.guildConfig.update({
+    where: { guildId },
+    data: updates
+  });
 }
 
 module.exports = { getGuildConfig, saveGuildConfig };

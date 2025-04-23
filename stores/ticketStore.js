@@ -1,29 +1,65 @@
 // stores/ticketStore.js
-const fs   = require('fs');
-const path = require('path');
-const base = process.env.DATA_PATH || path.join(__dirname, 'prod');
-if (!fs.existsSync(base)) fs.mkdirSync(base, { recursive: true });
-const FILE = path.join(base, 'ticketStore.json');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-function _load() {
-  if (!fs.existsSync(FILE)) return { nextIdByGuild: {}, data: {} };
-  return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+/**
+ * Abre um novo ticket.
+ * @param {object} params
+ * @param {string} params.guildId
+ * @param {string} params.userId
+ * @param {string} params.channelId
+ * @param {string} params.subject
+ * @returns {Promise<object>} O ticket criado (inclui id autogerado)
+ */
+async function openTicket({ guildId, userId, channelId, subject }) {
+  return prisma.ticket.create({
+    data: {
+      guildId,
+      userId,
+      channelId,
+      subject,
+      openedAt: new Date()
+    }
+  });
 }
 
-function _save(db) {
-  fs.writeFileSync(FILE, JSON.stringify(db, null, 2));
+/**
+ * Busca se o usuário já tem um ticket aberto neste guild.
+ * @param {string} guildId
+ * @param {string} userId
+ * @returns {Promise<object|null>}
+ */
+async function getOpenTicketForUser(guildId, userId) {
+  return prisma.ticket.findFirst({
+    where: { guildId, userId }
+  });
 }
 
-async function getStore() {
-  const db = _load();
-  // garantir estrutura
-  db.nextIdByGuild = db.nextIdByGuild || {};
-  db.data          = db.data          || {};
-  return db;
+/**
+ * Encontra um ticket pelo channelId.
+ * @param {string} channelId
+ * @returns {Promise<object|null>}
+ */
+async function getTicketByChannel(channelId) {
+  return prisma.ticket.findUnique({
+    where: { channelId }
+  });
 }
 
-async function saveStore(db) {
-  _save(db);
+/**
+ * Fecha (deleta) o ticket daquele channel.
+ * @param {string} channelId
+ * @returns {Promise<import('@prisma/client').Prisma.BatchPayload>}
+ */
+async function closeTicketByChannel(channelId) {
+  return prisma.ticket.deleteMany({
+    where: { channelId }
+  });
 }
 
-module.exports = { getStore, saveStore };
+module.exports = {
+  openTicket,
+  getOpenTicketForUser,
+  getTicketByChannel,
+  closeTicketByChannel
+};

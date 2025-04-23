@@ -1,42 +1,38 @@
 // services/reactionRoleService.js
-const {
-  getAll,
-  add,
-  remove
-} = require('../stores/reactionRoleStore');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 /**
- * Retorna o mapeamento de messageId-emoji → roleId para a guild.
- * @param {string} guildId 
- * @returns {Object<string, string>}
+ * Retorna o map de reaction-role para uma guild.
  */
 async function listRoles(guildId) {
-  return await getAll(guildId);
+  const rows = await prisma.reactionRole.findMany({
+    where: { guildId }
+  });
+  // transforma em { "msgId-emoji": roleId, ... }
+  return Object.fromEntries(
+    rows.map(r => [`${r.messageId}-${r.emoji}`, r.roleId])
+  );
 }
 
 /**
- * Adiciona uma reaction‑role ao armazenamento.
- * @param {string} guildId 
- * @param {string} messageId 
- * @param {string} emoji 
- * @param {string} roleId 
+ * Adiciona/atualiza uma reaction-role.
  */
 async function addRole(guildId, messageId, emoji, roleId) {
-  await add(guildId, messageId, emoji, roleId);
+  await prisma.reactionRole.upsert({
+    where: { guildId_messageId_emoji: { guildId, messageId, emoji } },
+    create: { guildId, messageId, emoji, roleId },
+    update: { roleId }
+  });
 }
 
 /**
- * Remove uma reaction‑role do armazenamento.
- * @param {string} guildId 
- * @param {string} messageId 
- * @param {string} emoji 
+ * Remove uma reaction-role.
  */
 async function removeRole(guildId, messageId, emoji) {
-  await remove(guildId, messageId, emoji);
+  await prisma.reactionRole.deleteMany({
+    where: { guildId, messageId, emoji }
+  });
 }
 
-module.exports = {
-  listRoles,
-  addRole,
-  removeRole
-};
+module.exports = { listRoles, addRole, removeRole };
