@@ -3,3 +3,4 @@ node_modules/
 dist/
 /stores/dev/**
 /stores/prod/**
+/generated
