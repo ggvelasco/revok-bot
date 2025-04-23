@@ -3,57 +3,39 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
- * Abre um novo ticket.
- * @param {object} params
- * @param {string} params.guildId
- * @param {string} params.userId
- * @param {string} params.channelId
- * @param {string} params.subject
- * @returns {Promise<object>} O ticket criado (inclui id autogerado)
+ * Abre um ticket no banco e retorna o registro.
  */
 async function openTicket({ guildId, userId, channelId, subject }) {
-  return prisma.ticket.create({
-    data: {
-      guildId,
-      userId,
-      channelId,
-      subject,
-      openedAt: new Date()
-    }
+  return await prisma.ticket.create({
+    data: { guildId, userId, channelId, subject }
   });
 }
 
 /**
- * Busca se o usuário já tem um ticket aberto neste guild.
- * @param {string} guildId
- * @param {string} userId
- * @returns {Promise<object|null>}
+ * Retorna um ticket aberto (sem closedAt) para este usuário/guild.
  */
 async function getOpenTicketForUser(guildId, userId) {
-  return prisma.ticket.findFirst({
-    where: { guildId, userId }
+  return await prisma.ticket.findFirst({
+    where: { guildId, userId, closedAt: null }
   });
 }
 
 /**
- * Encontra um ticket pelo channelId.
- * @param {string} channelId
- * @returns {Promise<object|null>}
+ * Retorna o ticket associado a este canal (aberto).
  */
 async function getTicketByChannel(channelId) {
-  return prisma.ticket.findUnique({
-    where: { channelId }
+  return await prisma.ticket.findFirst({
+    where: { channelId, closedAt: null }
   });
 }
 
 /**
- * Fecha (deleta) o ticket daquele channel.
- * @param {string} channelId
- * @returns {Promise<import('@prisma/client').Prisma.BatchPayload>}
+ * Fecha (marca closedAt) todos tickets abertos neste canal.
  */
 async function closeTicketByChannel(channelId) {
-  return prisma.ticket.deleteMany({
-    where: { channelId }
+  return await prisma.ticket.updateMany({
+    where: { channelId, closedAt: null },
+    data: { closedAt: new Date() }
   });
 }
 

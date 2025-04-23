@@ -3,16 +3,15 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
- * Obtém a configuração do servidor, criando defaults se não existir.
- * @param {string} guildId
+ * Garante que exista uma config para essa guild; se não, cria com valores default.
+ * @param {string} guildId 
  */
 async function getGuildConfig(guildId) {
   let cfg = await prisma.guildConfig.findUnique({
     where: { guildId }
   });
-
   if (!cfg) {
-    // valores padrão
+    // cria defaults
     cfg = await prisma.guildConfig.create({
       data: {
         guildId,
@@ -29,19 +28,19 @@ async function getGuildConfig(guildId) {
       }
     });
   }
-
   return cfg;
 }
 
 /**
- * Atualiza a configuração do servidor.
- * @param {string} guildId
- * @param {object} updates — objeto com as propriedades a atualizar
+ * Atualiza (ou cria) a config desta guild.
+ * @param {string} guildId 
+ * @param {object} data 
  */
-async function saveGuildConfig(guildId, updates) {
-  return prisma.guildConfig.update({
+async function saveGuildConfig(guildId, data) {
+  await prisma.guildConfig.upsert({
     where: { guildId },
-    data: updates
+    update: data,
+    create: { guildId, ...data }
   });
 }
 

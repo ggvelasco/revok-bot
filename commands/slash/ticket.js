@@ -62,14 +62,14 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const flags   = 1 << 6; // resposta efêmera
+    const flags   = 1 << 6;
     const guildId = interaction.guild.id;
     const userId  = interaction.user.id;
 
-    // 1) Este comando sempre defere pra poder usar editReply()
+    // 1) Defer para usar editReply()
     await interaction.deferReply({ ephemeral: true });
 
-    // 2) Puxa config e verifica staffRole
+    // 2) Verifica staffRole
     const cfg = await getGuildConfig(guildId);
     if (!cfg.staffRoleId) {
       return interaction.editReply(t(guildId, 'ticket.ERR_NOT_CONFIG_ADMIN'));
@@ -79,7 +79,7 @@ module.exports = {
 
     // ─── OPEN ─────────────────────────────
     if (sub === 'open') {
-      // 3) Impede múltiplos tickets abertos
+      // 3) impede duplicatas
       const already = await getOpenTicketForUser(guildId, userId);
       if (already) {
         return interaction.editReply(t(guildId, 'ticket.ALREADY'));
@@ -87,7 +87,7 @@ module.exports = {
 
       const subject = interaction.options.getString('subject');
 
-      // 4) Cria canal com nome temporário
+      // 4) cria canal temporário
       let channel;
       try {
         channel = await interaction.guild.channels.create({
@@ -104,25 +104,20 @@ module.exports = {
         return interaction.editReply(t(guildId, 'ticket.ERR_OPEN'));
       }
 
-      // 5) Persiste no banco e obtém o ID auto‐increment
+      // 5) persiste e obtém o ID
       let ticket;
       try {
-        ticket = await openTicket({
-          guildId,
-          userId,
-          channelId: channel.id,
-          subject
-        });
+        ticket = await openTicket({ guildId, userId, channelId: channel.id, subject });
       } catch (err) {
         console.error('[TICKET] openTicket failed', err);
         return interaction.editReply(t(guildId, 'ticket.ERR_OPEN'));
       }
 
-      // 6) Renomeia o canal para usar o ID gerado
+      // 6) renomeia canal
       const padded = String(ticket.id).padStart(4, '0');
       await channel.edit({ name: `ticket-${padded}` });
 
-      // 7) Monta embed + botão de fechar
+      // 7) monta embed + botão
       const embed = new EmbedBuilder()
         .setTitle(t(guildId, 'ticket.CREATE_TITLE', { id: padded }))
         .setDescription(t(guildId, 'ticket.CREATE_DESC', {
@@ -131,7 +126,6 @@ module.exports = {
         }))
         .setColor(0x00AE86)
         .setTimestamp();
-
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId(`close_ticket_${ticket.id}`)
@@ -139,22 +133,23 @@ module.exports = {
           .setStyle(ButtonStyle.Danger)
       );
 
-      // 8) Finaliza
+      // 8) finalize
       await interaction.editReply(t(guildId, 'ticket.REPLY_OPEN', { channel: channel.toString() }));
       return channel.send({ embeds: [embed], components: [row] });
     }
 
     // ─── CLOSE ────────────────────────────
+    // 9) encontra ticket por canal
     if (sub === 'close') {
-      // 9) Busca ticket pelo channel atual
       const existing = await getTicketByChannel(interaction.channel.id);
       if (!existing) {
         return interaction.editReply(t(guildId, 'ticket.ERR_NOT_CHANNEL'));
       }
-
-      // 10) Deleta do banco e do Discord
+      // 10) fecha no banco e deleta canal
       await closeTicketByChannel(interaction.channel.id);
-      await interaction.editReply(t(guildId, 'ticket.REPLY_CLOSED', { id: String(existing.id).padStart(4, '0') }));
+      await interaction.editReply(t(guildId, 'ticket.REPLY_CLOSED', {
+        id: String(existing.id).padStart(4, '0')
+      }));
       return interaction.channel.delete().catch(() => {});
     }
   }

@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-
 }
 
 datasource db {
@@ -15,11 +14,11 @@ datasource db {
 }
 
 model GuildConfig {
-  guildId         String  @id
-  prefix          String
-  staffRoleId     String?
-  logChannelId    String?
-  language        String
+  guildId          String   @id
+  prefix           String
+  staffRoleId      String?
+  logChannelId     String?
+  language         String
   welcomeChannelId String?
   welcomeMessage   String?
   goodbyeChannelId String?
@@ -29,20 +28,21 @@ model GuildConfig {
 }
 
 model ReactionRole {
-  id         Int    @id @default(autoincrement())
-  guildId    String
-  messageId  String
-  emoji      String
-  roleId     String
+  id        Int    @id @default(autoincrement())
+  guildId   String
+  messageId String
+  emoji     String
+  roleId    String
 
   @@unique([guildId, messageId, emoji])
 }
 
 model Ticket {
-  id         Int      @id
-  guildId    String
-  userId     String
-  channelId  String
-  subject    String
-  openedAt   DateTime
+  id        Int       @id @default(autoincrement())
+  guildId   String
+  userId    String
+  channelId String    @unique
+  subject   String
+  openedAt  DateTime  @default(now())
+  closedAt  DateTime?
 }
