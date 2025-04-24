@@ -1,54 +1,60 @@
 // commands/slash/help.js
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { getGuildConfig } = require('../../stores/guildConfigStore');
-const { t }              = require('../../utils/i18n');
+const { t } = require('../../utils/i18n');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Show all available commands'),
+    .setDescription('Show all available commands'),  // fallback
 
   async execute(interaction) {
     const guildId = interaction.guild.id;
-    const cfg     = await getGuildConfig(guildId);
-    const { slashCommands, prefixCommands } = interaction.client;
+
+    // 1) título e descrição
+    let title = await t(guildId, 'help.TITLE');
+    if (!title || title.includes('.')) title = '📖 Command Center';
+    let desc = await t(guildId, 'help.EMBED_DESCRIPTION');
+    if (!desc || desc.includes('.')) desc = 'Here are the features you can use:';
 
     const embed = new EmbedBuilder()
-      .setTitle(t(guildId, 'help.TITLE'))
-      .setDescription(t(guildId, 'help.EMBED_DESCRIPTION'))
+      .setTitle(title)
+      .setDescription(desc)
       .setColor(0x00AE86)
       .setTimestamp();
 
-    // Slash commands
-    const activeSlash = slashCommands.filter(cmd =>
-      !cfg.disabledCommands.includes(cmd.data.name)
+    // 2) Slash commands
+    const slashLines = await Promise.all(
+      [...interaction.client.slashCommands.values()].map(async cmd => {
+        const key = cmd.data.name;
+        let cd = await t(guildId, `help.COMMANDS.${key}`);
+        if (!cd || cd.includes('.')) cd = cmd.data.description;
+        return `• **/${key}** — ${cd}`;
+      })
     );
-    const slashList = activeSlash.map(cmd => {
-      const key  = `help.COMMANDS.${cmd.data.name}`;
-      const desc = t(guildId, key, {}, cmd.data.description);
-      return `• **/${cmd.data.name}** — ${desc}`;
-    }).join('\n') || t(guildId, 'help.EMPTY_SLASH');
-
     embed.addFields({
-      name: t(guildId, 'help.CATEGORY_SLASH'),
-      value: slashList
+      name: await t(guildId, 'help.CATEGORY_SLASH'),
+      value: slashLines.length
+        ? slashLines.join('\n')
+        : await t(guildId, 'help.EMPTY_SLASH')
     });
 
-    // Prefix commands
-    const activePrefix = prefixCommands.filter(cmd =>
-      !cfg.disabledCommands.includes(cmd.name)
+    // 3) Prefix commands
+    const prefixLines = await Promise.all(
+      [...interaction.client.prefixCommands.values()].map(async cmd => {
+        const key = cmd.name;
+        let pd = await t(guildId, `help.COMMANDS.${key}`);
+        if (!pd || pd.includes('.')) pd = cmd.description || await t(guildId, 'help.NO_DESCRIPTION');
+        return `• **!${key}** — ${pd}`;
+      })
     );
-    const prefixList = activePrefix.map(cmd => {
-      const key  = `help.COMMANDS.${cmd.name}`;
-      const desc = t(guildId, key, {}, cmd.description || t(guildId, 'help.NO_DESCRIPTION'));
-      return `• **${cfg.prefix}${cmd.name}** — ${desc}`;
-    }).join('\n') || t(guildId, 'help.EMPTY_PREFIX');
-
     embed.addFields({
-      name: t(guildId, 'help.CATEGORY_PREFIX'),
-      value: prefixList
+      name: await t(guildId, 'help.CATEGORY_PREFIX'),
+      value: prefixLines.length
+        ? prefixLines.join('\n')
+        : await t(guildId, 'help.EMPTY_PREFIX')
     });
 
+    // 4) Resposta efêmera
     await interaction.reply({ embeds: [embed], flags: 1 << 6 });
   }
 };

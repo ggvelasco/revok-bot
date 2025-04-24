@@ -119,7 +119,7 @@ module.exports = {
       !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles)
     ) {
       return interaction.reply({
-        content: t(guildId, "rr.NO_MANAGE_ROLES"),
+        content: await t(guildId, "rr.NO_MANAGE_ROLES"),
         flags,
       });
     }
@@ -134,7 +134,7 @@ module.exports = {
       await addRole(guildId, messageId, emoji, role.id);
 
       await interaction.reply({
-        content: t(guildId, "rr.ADD_SUCCESS"),
+        content: await t(guildId, "rr.ADD_SUCCESS"),
         flags,
       });
 
@@ -142,8 +142,9 @@ module.exports = {
         const msg = await interaction.channel.messages.fetch(messageId);
         await msg.react(emoji);
       } catch (err) {
-        console.error("❌ " + t(guildId, "rr.ERROR_REACT"), err);
+        console.error("❌ " + await t(guildId, "rr.ERROR_REACT"), err);
       }
+
     } else if (sub === "remove") {
       const messageId = interaction.options.getString("message");
       const emoji = interaction.options.getString("emoji");
@@ -151,20 +152,22 @@ module.exports = {
       await removeRole(guildId, messageId, emoji);
 
       await interaction.reply({
-        content: t(guildId, "rr.REMOVE_SUCCESS"),
+        content: await t(guildId, "rr.REMOVE_SUCCESS"),
         flags,
       });
+
     } else if (sub === "list") {
       const mapping = await listRoles(guildId);
       if (!Object.keys(mapping).length) {
         return interaction.reply({
-          content: t(guildId, "rr.LIST_EMPTY"),
+          content: await t(guildId, "rr.LIST_EMPTY"),
           flags,
         });
       }
 
-      const msgLabel = t(guildId, "rr.LIST_MSG_LABEL");
-      const emojiLabel = t(guildId, "rr.LIST_EMOJI_LABEL");
+      const msgLabel = await t(guildId, "rr.LIST_MSG_LABEL");
+      const emojiLabel = await t(guildId, "rr.LIST_EMOJI_LABEL");
+
       const lines = Object.entries(mapping).map(([key, roleId]) => {
         const [msgId, em] = key.split("-");
         return `• ${msgLabel} ${msgId} – ${emojiLabel} ${em} → <@&${roleId}>`;

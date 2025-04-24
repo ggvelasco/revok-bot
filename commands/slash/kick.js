@@ -1,8 +1,5 @@
 // commands/slash/kick.js
-const {
-  SlashCommandBuilder,
-  ChannelType
-} = require('discord.js');
+const { SlashCommandBuilder, ChannelType } = require('discord.js');
 const { moderateUser, PermissionError } = require('../../services/moderationService');
 const { t } = require('../../utils/i18n');
 const pt = require('../../locales/pt.json');
@@ -44,8 +41,9 @@ module.exports = {
     const flags = 1 << 6;
     const guildId = interaction.guild.id;
     const target = interaction.options.getMember('user');
+
     const reason = interaction.options.getString('reason') 
-      || t(guildId, 'mod.kick.REASON_UNSPECIFIED');
+      || await t(guildId, 'mod.kick.REASON_UNSPECIFIED');  // ✅ Corrigido aqui
 
     try {
       const embed = await moderateUser({
@@ -63,8 +61,10 @@ module.exports = {
         }
       });
 
+      const successMessage = await t(guildId, 'mod.kick.SUCCESS', { user: target.user.tag });
+
       await interaction.reply({ 
-        content: t(guildId, 'mod.kick.SUCCESS', { user: target.user.tag }), 
+        content: successMessage, 
         flags 
       });
 
@@ -78,7 +78,7 @@ module.exports = {
         return interaction.reply({ content: err.message, flags });
       }
       console.error('[KICK]', err);
-      return interaction.reply({ content: t(guildId, 'general.ERR_INTERNAL'), flags });
+      return interaction.reply({ content: await t(guildId, 'general.ERR_INTERNAL'), flags });
     }
   }
 };

@@ -2,12 +2,9 @@
   "general": {
     "ERR_INTERNAL": "❌ Ocurrió un error interno. Inténtalo de nuevo más tarde.",
     "NO_PERMISSION": "🔒 No tienes permiso para esto.",
-    "SETLANG_DESCRIPTION": "Define el idioma del bot en este servidor",
     "LANG_PT": "Portugués",
     "LANG_EN": "Inglés",
-    "LANG_ES": "Español",
-    "SETLANG_SUCCESS": "✅ Idioma cambiado a **{lang}**.",
-    "SETLANG_OPTION_DESCRIPTION": "Selecciona el idioma deseado"
+    "LANG_ES": "Español"
   },
   "config": {
     "DESCRIPTION": "Gestiona la configuración del servidor",
@@ -71,7 +68,6 @@
       "ping": "Responde con la latencia de la API",
       "reaction-role": "Gestiona reaction roles",
       "rrpanel": "Publica el panel de Reaction‑Roles",
-      "setlanguage": "Establece el idioma del bot en este servidor",
       "ticket": "Sistema de tickets de soporte",
       "say": "Repite el texto proporcionado"
     }

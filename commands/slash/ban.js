@@ -50,12 +50,18 @@ module.exports = {
   async execute(interaction) {
     const flags = 1 << 6;
     const guildId = interaction.guild.id;
-    const target = interaction.options.getUser('user');
+
+    // Troca aqui para pegar o GuildMember
+    const target = interaction.options.getMember('user');  
+
     const reason = interaction.options.getString('reason') 
-      || t(guildId, 'mod.ban.REASON_UNSPECIFIED');
+      || await t(guildId, 'mod.ban.REASON_UNSPECIFIED');
+
     const days = interaction.options.getInteger('days') ?? 0;
 
     try {
+      const deleteMsgsValue = await t(guildId, 'mod.ban.DELETE_MSGS_VALUE', { days });
+
       const embed = await moderateUser({
         interaction,
         action: 'ban',
@@ -64,16 +70,18 @@ module.exports = {
         localeKeys: {
           titleKey: 'mod.ban.EMBED_TITLE',
           fields: [
-            { nameKey: 'mod.ban.FIELD_USER',         value: target.tag },
+            { nameKey: 'mod.ban.FIELD_USER',         value: target.user.tag },
             { nameKey: 'mod.ban.FIELD_MODERATOR',    value: interaction.user.tag },
             { nameKey: 'mod.ban.FIELD_REASON',       value: reason, inline: false },
-            { nameKey: 'mod.ban.FIELD_DELETE_MSGS',  value: t(guildId, 'mod.ban.DELETE_MSGS_VALUE', { days }), inline: true }
+            { nameKey: 'mod.ban.FIELD_DELETE_MSGS',  value: deleteMsgsValue, inline: true }
           ]
         }
       });
 
+      const successMessage = await t(guildId, 'mod.ban.SUCCESS', { user: target.user.tag });
+
       await interaction.reply({ 
-        content: t(guildId, 'mod.ban.SUCCESS', { user: target.tag }), 
+        content: successMessage, 
         flags 
       });
 
@@ -87,7 +95,7 @@ module.exports = {
         return interaction.reply({ content: err.message, flags });
       }
       console.error('[BAN]', err);
-      return interaction.reply({ content: t(guildId, 'general.ERR_INTERNAL'), flags });
+      return interaction.reply({ content: await t(guildId, 'general.ERR_INTERNAL'), flags });
     }
   }
 };

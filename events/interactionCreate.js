@@ -1,62 +1,91 @@
 // events/interactionCreate.js
-const { ActionRowBuilder, ButtonStyle } = require('discord.js');
-const { getGuildConfig }                = require('../stores/guildConfigStore');
-const { t }                              = require('../utils/i18n');
+const { AutocompleteInteraction, ButtonInteraction } = require("discord.js");
+const { getGuildConfig } = require("../stores/guildConfigStore");
 const {
   getTicketByChannel,
-  closeTicketByChannel
-} = require('../stores/ticketStore');
+  closeTicketByChannel,
+} = require("../stores/ticketStore");
+const { t } = require("../utils/i18n");
 
 module.exports = {
-  name: 'interactionCreate',
+  name: "interactionCreate",
   async execute(interaction) {
     const guildId = interaction.guild?.id;
+    const flags = 1 << 6; // resposta ephemerally
 
-    // ─── Botões de fechar ticket ───
-    if (interaction.isButton()) {
-      const m = interaction.customId.match(/^close_ticket_(\d+)$/);
-      if (m) {
-        const ticketId = parseInt(m[1], 10);
-        const ticket   = await getTicketByChannel(interaction.channel.id);
-        if (!ticket || ticket.id !== ticketId) {
-          return interaction.reply({
-            content: t(guildId, 'ticket.ERR_NOT_CHANNEL'),
-            flags: 1 << 6
-          });
-        }
-        await closeTicketByChannel(interaction.channel.id);
-        await interaction.reply({
-          content: t(guildId, 'ticket.REPLY_CLOSED', { id: String(ticket.id).padStart(4,'0') }),
-          flags: 1 << 6
-        });
-        return interaction.channel.delete().catch(() => {});
-      }
+    // ─── Autocomplete ───────────────────────────────────────────────────────
+    if (interaction.isAutocomplete()) {
+      const focused = interaction.options.getFocused();
+      const choices = [...interaction.client.slashCommands.keys()];
+      const filtered = choices
+        .filter((cmd) => cmd.startsWith(focused))
+        .slice(0, 25);
+      return interaction.respond(
+        filtered.map((name) => ({ name, value: name }))
+      );
     }
 
-    // ─── Slash Commands ───
-    if (!interaction.isChatInputCommand()) return;
-    const cfg = await getGuildConfig(guildId);
+    // ─── Botão “Fechar Ticket” ───────────────────────────────────────────────
+    if (interaction.isButton()) {
+      const match = interaction.customId.match(/^close_ticket_(\d+)$/);
+      if (!match) return; // não é nosso botão
 
-    // bloqueia comandos desativados
-    if (cfg.disabledCommands.includes(interaction.commandName)) {
-      return interaction.reply({
-        content: t(guildId, 'config.COMMAND_DISABLED', { command: interaction.commandName }),
-        flags: 1 << 6
+      const ticketId = Number(match[1]);
+      // busca no banco
+      const ticket = await getTicketByChannel(interaction.channel.id);
+
+      // valida existência
+      if (!ticket || ticket.id !== ticketId) {
+        return interaction
+          .reply({ content: t(guildId, "ticket.ERR_NOT_CHANNEL"), flags })
+          .catch(console.error);
+      }
+
+      // fecha no banco
+      await closeTicketByChannel(interaction.channel.id);
+
+      // confirma para quem clicou
+      const text = await t(guildId, "ticket.REPLY_CLOSED", {
+        id: String(ticketId).padStart(4, "0"),
       });
+      await interaction.reply({ content: text, flags }).catch(console.error);
+
+      // apaga o canal após 500ms
+      setTimeout(() => {
+        interaction.channel.delete().catch(console.error);
+      }, 500);
+
+      return;
+    }
+
+    // ─── Slash-Commands ─────────────────────────────────────────────────────
+    if (!interaction.isChatInputCommand()) return;
+
+    // bloqueio de comandos desativados
+    const cfg = await getGuildConfig(guildId);
+    if (cfg.disabledCommands.includes(interaction.commandName)) {
+      return interaction
+        .reply({
+          content: t(guildId, "config.COMMAND_DISABLED", {
+            command: interaction.commandName,
+          }),
+          flags,
+        })
+        .catch(console.error);
     }
 
     const cmd = interaction.client.slashCommands.get(interaction.commandName);
     if (!cmd) return;
+
     try {
       await cmd.execute(interaction);
     } catch (err) {
-      console.error('[INTERACTION ERROR]', err);
+      console.error("[INTERACTION ERROR]", err);
       if (!interaction.replied) {
-        await interaction.reply({
-          content: t(guildId, 'general.ERR_INTERNAL'),
-          flags: 1 << 6
-        });
+        await interaction
+          .reply({ content: t(guildId, "general.ERR_INTERNAL"), flags })
+          .catch(console.error);
       }
     }
-  }
+  },
 };
